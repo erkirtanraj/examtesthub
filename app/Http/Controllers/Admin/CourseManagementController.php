@@ -199,6 +199,7 @@ class CourseManagementController extends Controller
             $file = $request->file('file');
             $resource['type'] = 'file';
             $resource['file_path'] = $file->store('course-resources/'.$course->id.'/'.$lesson->id, 'local');
+            $resource['original_name'] = $file->getClientOriginalName();
             $resource['mime_type'] = $file->getMimeType();
             $resource['file_size'] = $file->getSize();
         } else {
