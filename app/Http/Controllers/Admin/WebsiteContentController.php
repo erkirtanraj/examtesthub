@@ -16,6 +16,7 @@ class WebsiteContentController extends Controller
     public function index(): Response
     {
         $this->ensureDefaultHomepageContent();
+        $this->ensureDefaultHomepageSections();
 
         return Inertia::render('Admin/Settings/WebsiteContent', [
             'items' => WebsiteContent::query()->orderBy('type')->orderBy('sort_order')->orderBy('id')->get(),
@@ -79,6 +80,36 @@ class WebsiteContentController extends Controller
                     'content' => ['en' => $english, 'hi' => $hindi],
                     'is_published' => true,
                     'sort_order' => 0,
+                ],
+            );
+        }
+    }
+
+
+    /**
+     * Create editable homepage section records once; never overwrite admin changes.
+     */
+    private function ensureDefaultHomepageSections(): void
+    {
+        $sections = [
+            ['section.hero', 'Hero / Banner', 'मुख्य बैनर', 'Prepare smarter. Learn faster. Achieve more.', 'सीखें बेहतर। अभ्यास करें। सफलता पाएं।', 'Courses, online test series and study materials for competitive exam preparation—all in one place.', 'प्रतियोगी परीक्षाओं की तैयारी के लिए कोर्स, ऑनलाइन टेस्ट सीरीज़ और अध्ययन सामग्री—सब कुछ एक ही जगह।', 10],
+            ['section.features', 'Features', 'मुख्य सुविधाएँ', 'Everything you need to prepare', 'परीक्षा की तैयारी के लिए जरूरी सब कुछ', 'Explore the learning, test and study material features available on ExamTestHub.', 'ExamTestHub पर उपलब्ध कोर्स, टेस्ट और अध्ययन सामग्री की सुविधाएँ देखें।', 20],
+            ['section.steps', 'How it works', 'कैसे काम करता है', 'Your preparation in three steps', 'तीन आसान कदम', 'Create an account, choose what to study and track your progress.', 'अकाउंट बनाएं, पढ़ाई चुनें और अपनी प्रगति देखें।', 30],
+            ['section.cta', 'Call to action', 'कॉल टू एक्शन', 'Take the next step in your preparation', 'आज ही अपनी तैयारी शुरू करें', 'Sign in or create an account to get started with ExamTestHub.', 'लॉगिन करें या नया अकाउंट बनाकर अपनी सीखने की यात्रा शुरू करें।', 40],
+        ];
+
+        foreach ($sections as [$key, $title, $titleHi, $en, $hi, $descEn, $descHi, $order]) {
+            WebsiteContent::query()->firstOrCreate(
+                ['type' => 'home', 'key' => $key],
+                [
+                    'title' => $title,
+                    'content' => [
+                        'en' => ['title' => $en, 'description' => $descEn],
+                        'hi' => ['title' => $hi, 'description' => $descHi],
+                        'section_type' => str_replace('section.', '', $key),
+                    ],
+                    'is_published' => true,
+                    'sort_order' => $order,
                 ],
             );
         }
