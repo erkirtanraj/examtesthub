@@ -23,6 +23,11 @@ class Payment extends Model
         return $this->belongsTo(TestSeriesEnrollment::class, 'test_series_enrollment_id');
     }
 
+    public function courseEnrollment(): BelongsTo
+    {
+        return $this->belongsTo(CourseEnrollment::class, 'course_enrollment_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
