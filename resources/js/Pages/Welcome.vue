@@ -10,7 +10,7 @@ const mobileMenuOpen = ref(false);
 
 const copy = computed(() => locale.value === 'hi' ? {
     navHome: 'होम', navCourses: 'कोर्स', navTests: 'टेस्ट सीरीज़', navMaterials: 'अध्ययन सामग्री',
-    studentLogin: 'स्टूडेंट लॉगिन', adminLogin: 'एडमिन', register: 'रजिस्टर करें',
+    studentLogin: 'लॉगिन', adminLogin: 'एडमिन', register: 'रजिस्टर करें',
     eyebrow: 'आपकी सफलता की तैयारी यहीं से शुरू होती है',
     title: 'सीखें बेहतर। अभ्यास करें। सफलता पाएं।',
     description: 'प्रतियोगी परीक्षाओं की तैयारी के लिए कोर्स, ऑनलाइन टेस्ट सीरीज़ और अध्ययन सामग्री—सब कुछ एक ही जगह।',
@@ -35,7 +35,7 @@ const copy = computed(() => locale.value === 'hi' ? {
     adminAccess: 'एडमिन एक्सेस',
 } : {
     navHome: 'Home', navCourses: 'Courses', navTests: 'Test Series', navMaterials: 'Study Materials',
-    studentLogin: 'Student Login', adminLogin: 'Admin', register: 'Register',
+    studentLogin: 'Login', adminLogin: 'Admin', register: 'Register',
     eyebrow: 'YOUR EXAM PREPARATION PARTNER',
     title: 'Prepare smarter. Learn faster. Achieve more.',
     description: 'Courses, online test series and study materials for competitive exam preparation—all in one place.',
@@ -95,7 +95,6 @@ const steps = computed(() => [
                         <button type="button" @click="locale = 'en'" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition" :class="locale === 'en' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'">EN</button>
                         <button type="button" @click="locale = 'hi'" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition" :class="locale === 'hi' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'">हिंदी</button>
                     </div>
-                    <a href="/admin/login" class="rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">{{ copy.adminLogin }}</a>
                     <a href="/student/login" class="rounded-xl px-4 py-2.5 text-sm font-bold text-brand-700 transition hover:bg-indigo-50">{{ copy.studentLogin }}</a>
                     <a href="/register" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-brand-700">{{ copy.register }}</a>
                 </div>
@@ -115,7 +114,6 @@ const steps = computed(() => [
                     <a @click="mobileMenuOpen = false" href="#features" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navMaterials }}</a>
                     <div class="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
                         <a href="/student/login" class="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-bold text-slate-700">{{ copy.studentLogin }}</a>
-                        <a href="/admin/login" class="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-bold text-slate-700">{{ copy.adminLogin }}</a>
                         <a href="/register" class="col-span-2 rounded-xl bg-brand-600 px-3 py-2.5 text-center text-sm font-bold text-white">{{ copy.register }}</a>
                     </div>
                 </nav>
@@ -236,7 +234,6 @@ const steps = computed(() => [
                 </div>
                 <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium text-slate-500">
                     <a href="/student/login" class="hover:text-brand-700">{{ copy.studentLogin }}</a>
-                    <a href="/admin/login" class="hover:text-brand-700">{{ copy.adminAccess }}</a>
                 </div>
                 <p class="text-xs text-slate-400">© {{ new Date().getFullYear() }} ExamTestHub. All rights reserved.</p>
             </div>
