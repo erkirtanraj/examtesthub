@@ -10,10 +10,10 @@ const cards = computed(() => hi.value ? [
     { label: 'परीक्षा प्रबंधन', detail: 'प्रश्न बैंक और टेस्ट सीरीज़', status: 'अगला मॉड्यूल' },
     { label: 'भुगतान और रिपोर्ट', detail: 'लेनदेन और प्लेटफॉर्म रिपोर्ट', status: 'अगला मॉड्यूल' },
 ] : [
-    { label: 'User management', detail: 'Student and staff accounts', status: 'Next module' },
-    { label: 'Course management', detail: 'Courses, chapters and lessons', status: 'Next module' },
-    { label: 'Examination management', detail: 'Question bank and test series', status: 'Next module' },
-    { label: 'Payments and reports', detail: 'Transactions and platform reports', status: 'Next module' },
+    { label: 'User management', detail: 'Student and staff accounts', status: 'Available', href: '/admin/users' },
+    { label: 'Role management', detail: 'Roles and granular permissions', status: 'Available', href: '/admin/roles' },
+    { label: 'Audit activity', detail: 'Administrative change history', status: 'Available', href: '/admin/activity' },
+    { label: 'My profile', detail: 'Profile and password security', status: 'Available', href: '/admin/profile' },
 ]);
 </script>
 <template>
@@ -24,11 +24,11 @@ const cards = computed(() => hi.value ? [
             <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{{ hi ? 'आपकी भूमिका और अनुमतियों के अनुसार प्रशासनिक सुविधाएँ उपलब्ध होंगी।' : 'Your available administration capabilities are controlled by your assigned role and permissions.' }}</p>
         </div>
         <div id="operations" class="mt-6 grid gap-4 sm:grid-cols-2">
-            <article v-for="card in cards" :key="card.label" class="rounded-2xl border border-slate-200 bg-white p-5">
+            <a v-for="card in cards" :key="card.label" :href="card.href || '/admin/dashboard'" class="block rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-indigo-300 hover:shadow-sm">
                 <p class="text-lg font-bold text-slate-900">{{ card.label }}</p>
                 <p class="mt-2 text-sm text-slate-500">{{ card.detail }}</p>
                 <span class="mt-5 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{{ card.status }}</span>
-            </article>
+            </a>
         </div>
     </PortalLayout>
 </template>
