@@ -39,11 +39,15 @@ class TestSeriesController extends Controller
 
     private function validated(Request $request): array
     {
+        $priceRules = $request->input('access_type') === 'paid'
+            ? ['required', 'numeric', 'min:0.01', 'max:99999999.99']
+            : ['nullable', 'numeric', 'min:0', 'max:99999999.99'];
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string', 'max:10000'],
             'access_type' => ['required', Rule::in(['free', 'paid'])],
-            'price' => ['required_if:access_type,paid', 'numeric', 'min:0.01', 'max:99999999.99'],
+            'price' => $priceRules,
             'currency' => ['required', 'string', 'size:3', 'in:INR'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
             'starts_at' => ['nullable', 'date'],
