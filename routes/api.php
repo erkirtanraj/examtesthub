@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('/payments/razorpay/webhook', [PaymentController::class, 'webhook'])
         ->middleware('throttle:120,1')->name('payments.razorpay.webhook');
-    Route::get('/health', fn () => response()->json([
+    Route::get('/website-content', [WebsiteContentApiController::class, 'index'])->name('website-content.index');\n    Route::get('/pages/{slug}', [WebsiteContentApiController::class, 'page'])->name('website-content.page');\n    Route::get('/health', fn () => response()->json([
         'status' => 'ok',
         'service' => 'examtesthub-api',
         'version' => '1.0.0',
