@@ -45,6 +45,7 @@ const adminGroups = computed(() => [
         key: 'Courses', label: isHindi.value ? 'LMS कोर्स प्रबंधन' : 'LMS Course Management', icon: 'courses',
         items: [
             { label: isHindi.value ? 'सभी कोर्स' : 'All Courses', href: '/admin/courses', permission: 'courses.view' },
+            { label: isHindi.value ? 'PDF सामग्री' : 'Study Materials', href: '/admin/materials', permission: 'materials.manage' },
         ],
     },
     {
@@ -75,6 +76,7 @@ const studentItems = computed(() => [
     { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
+    { label: isHindi.value ? 'PDF सामग्री' : 'Study Materials', href: '/student/materials', icon: 'materials' },
     { label: isHindi.value ? 'टेस्ट सीरीज़' : 'Test Series', href: '/student/test-series', icon: 'series' },
     { label: isHindi.value ? 'मेरी टेस्ट सीरीज़' : 'My Test Series', href: '/student/my-test-series', icon: 'learning' },
     { label: isHindi.value ? 'उपलब्ध परीक्षाएँ' : 'Available Exams', href: '/student/exams', icon: 'exams' },
@@ -162,7 +164,7 @@ watch(() => page.url, closeMobile);
                     </section>
                     <div class="mt-5 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3">
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ isHindi ? 'आगामी मॉड्यूल' : 'Coming next' }}</p>
-                        <p class="mt-2 text-sm font-medium text-slate-700">{{ isHindi ? 'PDF सामग्री, रिपोर्ट और एनालिटिक्स' : 'PDF Materials, Reports & Analytics' }}</p>
+                        <p class="mt-2 text-sm font-medium text-slate-700">{{ isHindi ? 'रिपोर्ट और एनालिटिक्स' : 'Reports & Analytics' }}</p>
                         <p class="mt-1 text-xs leading-5 text-slate-500">{{ isHindi ? 'इन मॉड्यूल्स के पेज तैयार होने पर यहाँ उपलब्ध होंगे।' : 'These modules will appear here when their pages and backend are implemented.' }}</p>
                     </div>
                 </nav>
