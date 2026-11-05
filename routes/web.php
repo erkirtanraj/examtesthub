@@ -1,4 +1,5 @@
 <?php
+use App\Models\StudentProfileSetting;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\CourseManagementController;
 use App\Http\Controllers\Admin\ReportsController;
