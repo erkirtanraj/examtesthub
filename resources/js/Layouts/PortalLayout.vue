@@ -64,6 +64,12 @@ const adminGroups = computed(() => [
         ],
     },
     {
+        key: 'Reporting', label: isHindi.value ? 'रिपोर्ट और एनालिटिक्स' : 'Reports & Analytics', icon: 'reports',
+        items: [
+            { label: isHindi.value ? 'प्रदर्शन डैशबोर्ड' : 'Performance dashboard', href: '/admin/reports', permission: 'reports.view' },
+        ],
+    },
+    {
         key: 'Administration', label: isHindi.value ? 'प्रशासन और सुरक्षा' : 'Administration & Security', icon: 'security',
         items: [
             { label: isHindi.value ? 'गतिविधि लॉग' : 'Audit Activity', href: '/admin/activity', permission: 'audit.view' },
@@ -76,6 +82,7 @@ const studentItems = computed(() => [
     { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
+    { label: isHindi.value ? 'मेरा प्रदर्शन' : 'My Performance', href: '/student/performance', icon: 'reports' },
     { label: isHindi.value ? 'PDF सामग्री' : 'Study Materials', href: '/student/materials', icon: 'materials' },
     { label: isHindi.value ? 'टेस्ट सीरीज़' : 'Test Series', href: '/student/test-series', icon: 'series' },
     { label: isHindi.value ? 'मेरी टेस्ट सीरीज़' : 'My Test Series', href: '/student/my-test-series', icon: 'learning' },
@@ -162,11 +169,6 @@ watch(() => page.url, closeMobile);
                             </a>
                         </div>
                     </section>
-                    <div class="mt-5 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3">
-                        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ isHindi ? 'आगामी मॉड्यूल' : 'Coming next' }}</p>
-                        <p class="mt-2 text-sm font-medium text-slate-700">{{ isHindi ? 'रिपोर्ट और एनालिटिक्स' : 'Reports & Analytics' }}</p>
-                        <p class="mt-1 text-xs leading-5 text-slate-500">{{ isHindi ? 'इन मॉड्यूल्स के पेज तैयार होने पर यहाँ उपलब्ध होंगे।' : 'These modules will appear here when their pages and backend are implemented.' }}</p>
-                    </div>
                 </nav>
 
                 <nav v-else class="space-y-1" aria-label="Student navigation">
