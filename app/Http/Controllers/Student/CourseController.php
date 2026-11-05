@@ -57,21 +57,68 @@ class CourseController extends Controller
     public function show(Request $request, Course $course): Response
     {
         abort_unless($course->isAvailable(), 404);
-        $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->first();
+
+        $enrollment = CourseEnrollment::where('course_id', $course->id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+        $hasAccess = $enrollment && in_array($enrollment->status, ['active', 'completed'], true);
+
         $course->load(['sections.chapters.lessons' => fn ($q) => $q->where('status', 'published')->orderBy('position')]);
-        $course->sections->each(fn ($section) => $section->chapters->each(fn ($chapter) => $chapter->lessons->each(function ($lesson) use ($enrollment) {
-            $lesson->setAttribute('is_locked', ! $enrollment || ! in_array($enrollment->status, ['active', 'completed'], true) ? ! $lesson->is_preview : false);
-        })));
-        $lessonCount = $course->sections->sum(fn ($section) => $section->chapters->sum(fn ($chapter) => $chapter->lessons->count()));
-        $completedIds = $enrollment ? $enrollment->progress()->where('status', 'completed')->pluck('lesson_id')->all() : [];
+
+        // Only expose curriculum metadata here. Lesson bodies and video URLs are
+        // returned by the dedicated lesson endpoint after the access check.
+        $sections = $course->sections->map(fn ($section) => [
+            'id' => $section->id,
+            'title' => $section->title,
+            'title_hi' => $section->title_hi,
+            'description' => $section->description,
+            'description_hi' => $section->description_hi,
+            'position' => $section->position,
+            'chapters' => $section->chapters->map(fn ($chapter) => [
+                'id' => $chapter->id,
+                'title' => $chapter->title,
+                'title_hi' => $chapter->title_hi,
+                'position' => $chapter->position,
+                'lessons' => $chapter->lessons->map(fn ($lesson) => [
+                    'id' => $lesson->id,
+                    'title' => $lesson->title,
+                    'title_hi' => $lesson->title_hi,
+                    'type' => $lesson->type,
+                    'duration_minutes' => $lesson->duration_minutes,
+                    'is_preview' => $lesson->is_preview,
+                    'is_locked' => ! $hasAccess && ! $lesson->is_preview,
+                ])->values(),
+            ])->values(),
+        ])->values();
+
+        $lessonIds = $course->sections->flatMap(fn ($section) => $section->chapters)
+            ->flatMap(fn ($chapter) => $chapter->lessons)->pluck('id')->all();
+        $lessonCount = count($lessonIds);
+        $completedIds = $enrollment
+            ? $enrollment->progress()->where('status', 'completed')->whereIn('lesson_id', $lessonIds)->pluck('lesson_id')->all()
+            : [];
         $completed = count($completedIds);
-        $resumeLesson = $enrollment && in_array($enrollment->status, ['active', 'completed'], true)
-            ? $course->sections->flatMap(fn ($section) => $section->chapters)->flatMap(fn ($chapter) => $chapter->lessons)->first(fn ($lesson) => ! in_array($lesson->id, $completedIds, true))
+        $resumeLessonId = $hasAccess
+            ? collect($lessonIds)->first(fn ($lessonId) => ! in_array($lessonId, $completedIds, true))
             : null;
+
         return Inertia::render('Student/Courses/Show', [
-            'course' => $course, 'enrollment' => $enrollment,
+            'course' => [
+                'id' => $course->id,
+                'title' => $course->title,
+                'title_hi' => $course->title_hi,
+                'slug' => $course->slug,
+                'description' => $course->description,
+                'description_hi' => $course->description_hi,
+                'category' => $course->category,
+                'access_type' => $course->access_type,
+                'price' => $course->price,
+                'currency' => $course->currency,
+                'sections' => $sections,
+            ],
+            'enrollment' => $enrollment?->only(['id', 'status', 'enrolled_at', 'completed_at']),
             'progress' => ['total' => $lessonCount, 'completed' => $completed],
-            'resume_lesson_id' => $resumeLesson?->id,
+            'resume_lesson_id' => $resumeLessonId,
         ]);
     }
 
@@ -132,17 +179,37 @@ class CourseController extends Controller
 
     public function complete(Request $request, Course $course, CourseLesson $lesson): RedirectResponse
     {
-        abort_unless($lesson->status === 'published' && $lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
-        $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->where('status', 'active')->firstOrFail();
-        DB::transaction(function () use ($enrollment, $lesson) {
+        abort_unless($course->isAvailable(), 404);
+        abort_unless($lesson->status === 'published'
+            && $lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
+
+        DB::transaction(function () use ($request, $course, $lesson) {
+            $enrollment = CourseEnrollment::where('course_id', $course->id)
+                ->where('user_id', $request->user()->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->lockForUpdate()
+                ->firstOrFail();
+
             CourseLessonProgress::updateOrCreate(
                 ['course_enrollment_id' => $enrollment->id, 'lesson_id' => $lesson->id],
-                ['status' => 'completed', 'completed_at' => now(), 'started_at' => now()]
+                ['status' => 'completed', 'completed_at' => now(), 'started_at' => $enrollment->enrolled_at ?? now()]
             );
-            $total = CourseLesson::where('status', 'published')->whereHas('chapter.section', fn ($q) => $q->where('course_id', $enrollment->course_id))->count();
-            $completed = $enrollment->progress()->where('status', 'completed')->count();
-            if ($total > 0 && $completed >= $total) $enrollment->update(['status' => 'completed', 'completed_at' => now()]);
+
+            $total = CourseLesson::where('status', 'published')
+                ->whereHas('chapter.section', fn ($q) => $q->where('course_id', $course->id))
+                ->count();
+            $completed = $enrollment->progress()->where('status', 'completed')
+                ->whereHas('lesson', fn ($q) => $q->where('status', 'published'))
+                ->count();
+
+            if ($total > 0 && $completed >= $total) {
+                $enrollment->update(['status' => 'completed', 'completed_at' => $enrollment->completed_at ?? now()]);
+            } else {
+                // A completed course may receive new published lessons later.
+                $enrollment->update(['status' => 'active', 'completed_at' => null]);
+            }
         });
+
         return back()->with('success', 'Lesson marked as complete.');
     }
 }
