@@ -67,6 +67,17 @@ const copy = computed(() => {
     footerLine: 'Learn · Practice · Achieve', privacy: 'Privacy',
     terms: 'Terms', contact: 'Contact',
     adminAccess: 'Admin access',
+    };
+    const cms = page.props.websiteContent || [];
+    const overrides = Object.fromEntries(
+        cms
+            .filter(item => ['home', 'menu', 'footer'].includes(item.type) && item.key)
+            .map(item => [item.key, item.content?.[locale.value] || item.content?.en || ''])
+    );
+    return {
+        ...defaults,
+        ...Object.fromEntries(Object.entries(overrides).filter(([, value]) => value !== '')),
+    };
 });
 
 const features = computed(() => [
