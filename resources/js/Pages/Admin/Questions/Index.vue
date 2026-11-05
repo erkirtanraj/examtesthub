@@ -21,9 +21,12 @@ function applyFilters() {
     router.get('/admin/questions', { search: search.value, subject_id: subjectFilter.value, difficulty: difficultyFilter.value, status: statusFilter.value, language: languageFilter.value }, { preserveState: true, replace: true });
 }
 function submit() {
-    const payload = { ...form.data(), correct_answer: form.type === 'short_answer' ? [form.answer_text] : form.type === 'true_false' ? form.correct_answer : form.correct_answer };
-    if (editing.value) router.put('/admin/questions/' + editing.value, payload, { onSuccess: reset });
-    else router.post('/admin/questions', payload, { onSuccess: reset });
+    form.transform(data => {
+        const { answer_text, ...payload } = data;
+        return { ...payload, correct_answer: data.type === 'short_answer' ? [answer_text] : data.correct_answer };
+    });
+    if (editing.value) form.put('/admin/questions/' + editing.value, { onSuccess: reset });
+    else form.post('/admin/questions', { onSuccess: reset });
 }
 function edit(question) {
     editing.value = question.id;
@@ -36,7 +39,7 @@ function edit(question) {
     form.explanation = question.explanation || ''; form.difficulty = question.difficulty;
     form.language = question.language; form.marks = question.marks; form.negative_marks = question.negative_marks; form.status = question.status;
 }
-function reset() { editing.value = null; form.reset(); Object.assign(form, blank()); }
+function reset() { editing.value = null; form.reset(); form.clearErrors(); }
 function remove(question) {
     if (confirm(hi.value ? 'क्या आप इस प्रश्न को हटाना चाहते हैं?' : 'Delete this question?')) router.delete('/admin/questions/' + question.id);
 }
