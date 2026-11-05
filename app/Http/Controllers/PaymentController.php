@@ -93,43 +93,76 @@ class PaymentController extends Controller
         $amountPaise = (int) round(((float) $course->price) * 100);
         abort_if($amountPaise < 100, 422, 'The payment amount is invalid.');
 
-        $enrollment = DB::transaction(function () use ($request, $course) {
+        // Serialize order creation per course enrollment. Concurrent retries either
+        // reuse the active provider order or are told that order creation is in progress.
+        $payment = DB::transaction(function () use ($request, $course, $amountPaise) {
             $lockedCourse = \App\Models\Course::whereKey($course->id)->lockForUpdate()->firstOrFail();
             abort_unless($lockedCourse->isAvailable() && $lockedCourse->access_type === 'paid', 404);
-            $existing = \App\Models\CourseEnrollment::where('course_id', $lockedCourse->id)
-                ->where('user_id', $request->user()->id)->lockForUpdate()->first();
-            if ($existing?->status === 'active' || $existing?->status === 'completed') {
-                abort(409, 'You are already enrolled in this course.');
-            }
-            return \App\Models\CourseEnrollment::updateOrCreate(
+
+            $enrollment = \App\Models\CourseEnrollment::updateOrCreate(
                 ['course_id' => $lockedCourse->id, 'user_id' => $request->user()->id],
                 ['status' => 'pending_payment', 'amount_paid' => null, 'currency' => $lockedCourse->currency, 'enrolled_at' => null]
             );
+            $enrollment = \App\Models\CourseEnrollment::whereKey($enrollment->id)->lockForUpdate()->firstOrFail();
+
+            if (in_array($enrollment->status, ['active', 'completed'], true)) {
+                abort(409, 'You are already enrolled in this course.');
+            }
+
+            $pendingPayment = Payment::where('course_enrollment_id', $enrollment->id)
+                ->where('status', 'pending')
+                ->latest('id')
+                ->lockForUpdate()
+                ->first();
+
+            if ($pendingPayment) {
+                if (filled($pendingPayment->provider_order_id)) {
+                    return $pendingPayment;
+                }
+
+                if ($pendingPayment->created_at && $pendingPayment->created_at->gt(now()->subMinutes(2))) {
+                    abort(409, 'Your payment order is still being prepared. Please retry shortly.');
+                }
+
+                // Recover an abandoned order-creation attempt before starting a new one.
+                $pendingPayment->update([
+                    'status' => 'failed',
+                    'failure_description' => 'Payment order creation timed out; a new attempt is required.',
+                ]);
+            }
+
+            $receipt = 'course_'.$enrollment->id.'_'.Str::lower(Str::random(12));
+
+            return Payment::create([
+                'course_enrollment_id' => $enrollment->id,
+                'user_id' => $request->user()->id,
+                'receipt' => $receipt,
+                'amount_paise' => $amountPaise,
+                'currency' => 'INR',
+                'status' => 'pending',
+            ]);
         });
 
-        $receipt = 'course_'.$enrollment->id.'_'.Str::lower(Str::random(12));
-        $payment = Payment::create([
-            'course_enrollment_id' => $enrollment->id,
-            'user_id' => $request->user()->id,
-            'receipt' => $receipt,
-            'amount_paise' => $amountPaise,
-            'currency' => 'INR',
-            'status' => 'pending',
-        ]);
+        // A retry must return the same payable Razorpay order, never create another.
+        if (filled($payment->provider_order_id)) {
+            return redirect()->route('student.payments.checkout', $payment);
+        }
 
         try {
             $response = Http::withBasicAuth($config['key_id'], $config['key_secret'])
                 ->acceptJson()->timeout(20)->post(rtrim($config['base_url'], '/').'/orders', [
-                    'amount' => $amountPaise,
-                    'currency' => 'INR',
-                    'receipt' => $receipt,
+                    'amount' => $payment->amount_paise,
+                    'currency' => $payment->currency,
+                    'receipt' => $payment->receipt,
                     'notes' => ['payment_record_id' => (string) $payment->id, 'course_id' => (string) $course->id],
                 ]);
+
             if (! $response->successful() || ! filled($response->json('id'))) {
                 $payment->update(['status' => 'failed', 'failure_description' => 'Order creation failed at payment provider.']);
                 Log::warning('Razorpay course order creation failed', ['payment_id' => $payment->id, 'status' => $response->status()]);
                 return back()->withErrors(['payment' => 'Unable to start payment. Please try again later.']);
             }
+
             $payment->update(['provider_order_id' => $response->json('id')]);
         } catch (\Throwable $exception) {
             $payment->update(['status' => 'failed', 'failure_description' => 'Payment provider unavailable.']);
