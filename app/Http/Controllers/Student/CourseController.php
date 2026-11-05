@@ -37,7 +37,7 @@ class CourseController extends Controller
 
     public function myCourses(Request $request): Response
     {
-        $courses = Course::whereHas('enrollments', fn ($q) => $q->where('user_id', $request->user()->id))
+        $courses = Course::where('status', 'published')->whereHas('enrollments', fn ($q) => $q->where('user_id', $request->user()->id))
             ->withCount('sections')
             ->with(['enrollments' => fn ($q) => $q->where('user_id', $request->user()->id)])
             ->orderBy('title')->paginate(12)->through(fn ($course) => [
@@ -60,10 +60,15 @@ class CourseController extends Controller
             $lesson->setAttribute('is_locked', ! $enrollment || ! in_array($enrollment->status, ['active', 'completed'], true) ? ! $lesson->is_preview : false);
         })));
         $lessonCount = $course->sections->sum(fn ($section) => $section->chapters->sum(fn ($chapter) => $chapter->lessons->count()));
-        $completed = $enrollment ? $enrollment->progress()->where('status', 'completed')->count() : 0;
+        $completedIds = $enrollment ? $enrollment->progress()->where('status', 'completed')->pluck('lesson_id')->all() : [];
+        $completed = count($completedIds);
+        $resumeLesson = $enrollment && in_array($enrollment->status, ['active', 'completed'], true)
+            ? $course->sections->flatMap(fn ($section) => $section->chapters)->flatMap(fn ($chapter) => $chapter->lessons)->first(fn ($lesson) => ! in_array($lesson->id, $completedIds, true))
+            : null;
         return Inertia::render('Student/Courses/Show', [
             'course' => $course, 'enrollment' => $enrollment,
             'progress' => ['total' => $lessonCount, 'completed' => $completed],
+            'resume_lesson_id' => $resumeLesson?->id,
         ]);
     }
 
@@ -109,6 +114,7 @@ class CourseController extends Controller
 
     public function downloadResource(Request $request, Course $course, CourseLesson $lesson, \App\Models\CourseLessonResource $resource): StreamedResponse
     {
+        abort_unless($course->isAvailable() && $lesson->status === 'published', 404);
         abort_unless($resource->lesson_id === $lesson->id
             && $lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
         $enrollment = CourseEnrollment::where('course_id', $course->id)
@@ -117,7 +123,7 @@ class CourseController extends Controller
         abort_unless($enrollment || $lesson->is_preview, 403);
         abort_unless($resource->type === 'file' && $resource->file_path
             && Storage::disk('local')->exists($resource->file_path), 404);
-        return Storage::disk('local')->download($resource->file_path, basename($resource->file_path));
+        return Storage::disk('local')->download($resource->file_path, $resource->original_name ?: basename($resource->file_path));
     }
 
     public function complete(Request $request, Course $course, CourseLesson $lesson): RedirectResponse
