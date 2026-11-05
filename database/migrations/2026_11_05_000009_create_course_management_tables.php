@@ -58,6 +58,7 @@ return new class extends Migration {
             $table->string('type', 16)->default('text');
             $table->text('video_url')->nullable();
             $table->longText('content')->nullable();
+            $table->longText('content_hi')->nullable();
             $table->boolean('is_preview')->default(false);
             $table->unsignedSmallInteger('duration_minutes')->default(0);
             $table->string('status', 20)->default('draft')->index();
