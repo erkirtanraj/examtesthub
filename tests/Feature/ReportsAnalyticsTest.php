@@ -1,21 +1,21 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\Course;
-use App\\Models\\CourseEnrollment;
-use App\\Models\\Exam;
-use App\\Models\\ExamAttempt;
-use App\\Models\\Payment;
-use App\\Models\\Permission;
-use App\\Models\\Role;
-use App\\Models\\TestSeries;
-use App\\Models\\TestSeriesEnrollment;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\Hash;
-use Inertia\\Testing\\AssertableInertia as Assert;
-use Tests\\TestCase;
+use App\Models\Course;
+use App\Models\CourseEnrollment;
+use App\Models\Exam;
+use App\Models\ExamAttempt;
+use App\Models\Payment;
+use App\Models\Permission;
+use App\Models\Role;
+use App\Models\TestSeries;
+use App\Models\TestSeriesEnrollment;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia as Assert;
+use Tests\TestCase;
 
 class ReportsAnalyticsTest extends TestCase
 {
