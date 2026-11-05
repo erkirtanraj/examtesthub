@@ -82,16 +82,16 @@ class TestSeriesManagementTest extends TestCase
         ]);
     }
 
-    public function test_paid_series_enrollment_remains_pending_until_payment_is_verified(): void
+    public function test_paid_series_cannot_be_reserved_without_using_secure_checkout(): void
     {
         $admin = $this->user('super-admin', 'series-admin2@example.test');
         $student = $this->user('student', 'series-student2@example.test');
         $series = $this->series($admin, $this->publishedExam($admin), 'paid');
 
-        $this->actingAs($student)->post('/student/test-series/'.$series->id.'/enroll')->assertSessionHasNoErrors();
+        $this->actingAs($student)->post('/student/test-series/'.$series->id.'/enroll')->assertConflict();
 
-        $this->assertDatabaseHas('test_series_enrollments', [
-            'test_series_id' => $series->id, 'user_id' => $student->id, 'status' => 'pending_payment',
+        $this->assertDatabaseMissing('test_series_enrollments', [
+            'test_series_id' => $series->id, 'user_id' => $student->id,
         ]);
     }
 

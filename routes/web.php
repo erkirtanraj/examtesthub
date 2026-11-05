@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ExamManagementController;
 use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\TestSeriesController as AdminTestSeriesController;
 use App\Http\Controllers\Auth\PortalAuthenticationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Student\StudentExamController;
 use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesController;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::post('/subjects/{subject}/topics',[QuestionBankController::class,'storeTopic'])->name('topics.store');
  });
  Route::middleware('permission:tests.manage')->group(function(){
+  Route::get('/payments',[PaymentController::class,'adminIndex'])->name('payments.index');
   Route::get('/exams',[ExamManagementController::class,'index'])->name('exams.index');
   Route::post('/exams',[ExamManagementController::class,'store'])->name('exams.store');
   Route::put('/exams/{exam}',[ExamManagementController::class,'update'])->name('exams.update');
@@ -72,6 +74,10 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  });
 });
 Route::middleware(['auth','active','role:student'])->prefix('student')->name('student.')->group(function(){
+ Route::get('/payments',[PaymentController::class,'studentIndex'])->name('payments.index');
+ Route::post('/test-series/{testSeries}/checkout',[PaymentController::class,'createOrder'])->middleware('throttle:5,1')->name('payments.create');
+ Route::get('/payments/{payment}/checkout',[PaymentController::class,'checkout'])->name('payments.checkout');
+ Route::post('/payments/{payment}/verify',[PaymentController::class,'verify'])->middleware('throttle:10,1')->name('payments.verify');
  Route::get('/dashboard',fn()=>Inertia::render('Student/Dashboard'))->name('dashboard');
  Route::get('/test-series',[StudentTestSeriesController::class,'index'])->name('test-series.index');
  Route::get('/my-test-series',[StudentTestSeriesController::class,'mySeries'])->name('test-series.mine');
