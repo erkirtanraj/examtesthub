@@ -8,28 +8,29 @@ const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const activeType = ref('home');
 const editingId = ref(null);
-const blank = () => ({ type: activeType.value, key: '', title: '', slug: '', content: { en: '', hi: '' }, is_published: true, sort_order: 0 });
+const isSectionMode = computed(() => activeType.value === 'home_sections');
+const blank = () => ({ type: 'home', key: '', title: '', slug: '', content: isSectionMode.value ? { en: { title: '', description: '' }, hi: { title: '', description: '' }, section_type: 'custom' } : { en: '', hi: '' }, is_published: true, sort_order: 50 });
 const form = useForm(blank());
 const types = [
-    { value: 'home', en: 'Homepage text', hi: 'होमपेज टेक्स्ट' },
+    { value: 'home_sections', en: 'Homepage sections', hi: 'होमपेज सेक्शन' },\n    { value: 'home', en: 'Homepage text (legacy copy)', hi: 'पुराना होमपेज टेक्स्ट' },
     { value: 'menu', en: 'Menu links', hi: 'मेन्यू लिंक' },
     { value: 'footer', en: 'Footer content', hi: 'फुटर सामग्री' },
     { value: 'contact', en: 'Contact options', hi: 'संपर्क विकल्प' },
     { value: 'legal', en: 'Legal / T&C', hi: 'कानूनी / नियम एवं शर्तें' },
     { value: 'page', en: 'Custom pages', hi: 'कस्टम पेज' },
 ];
-const filtered = computed(() => props.items.filter(item => item.type === activeType.value));
+const filtered = computed(() => isSectionMode.value ? props.items.filter(item => item.type === 'home' && (item.key || '').startsWith('section.')) : props.items.filter(item => item.type === activeType.value));
 const success = computed(() => page.props.flash?.success || '');
 function reset() { editingId.value = null; form.defaults(blank()); form.reset(); }
 function edit(item) {
     editingId.value = item.id;
     form.type = item.type; form.key = item.key || ''; form.title = item.title || '';
-    form.slug = item.slug || ''; form.content = item.content || { en: '', hi: '' };
+    form.slug = item.slug || ''; form.content = item.content || (isSectionMode.value ? { en: { title: '', description: '' }, hi: { title: '', description: '' }, section_type: 'custom' } : { en: '', hi: '' });
     form.is_published = !!item.is_published; form.sort_order = item.sort_order || 0;
 }
 function save() {
     const url = editingId.value ? '/admin/settings/website-content/' + editingId.value : '/admin/settings/website-content';
-    form.transform(data => ({ ...data, type: activeType.value })).submit(editingId.value ? 'put' : 'post', url, { preserveScroll: true, onSuccess: reset });
+    form.transform(data => ({ ...data, type: isSectionMode.value ? 'home' : activeType.value })).submit(editingId.value ? 'put' : 'post', url, { preserveScroll: true, onSuccess: reset });
 }
 function remove(item) {
     if (confirm(hi.value ? 'क्या आप यह सामग्री हटाना चाहते हैं?' : 'Delete this content item?')) {
@@ -39,7 +40,7 @@ function remove(item) {
 </script>
 
 <template>
-    <PortalLayout portal="admin" :title="hi ? 'वेबसाइट कंटेंट मैनेजर' : 'Website Content Manager'" :subtitle="hi ? 'होमपेज, मेन्यू, फुटर, पेज, कानूनी और संपर्क सामग्री प्रबंधित करें।' : 'Manage homepage copy, navigation, footer, custom pages, legal text and contact options.'">
+    <PortalLayout portal="admin" :title="hi ? 'वेबसाइट कंटेंट मैनेजर' : 'Website Content Manager'" :subtitle="hi ? 'होमपेज, मेन्यू, फुटर, पेज, कानूनी और संपर्क सामग्री प्रबंधित करें।' : 'Manage homepage sections, navigation, footer, custom pages, legal text and contact options.'">
         <div class="space-y-5">
             <div v-if="success" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ success }}</div>
             <div class="flex flex-wrap gap-2">
@@ -51,20 +52,19 @@ function remove(item) {
                     <div v-if="!filtered.length" class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{{ hi ? 'इस सेक्शन में अभी कोई सामग्री नहीं है। दाईं ओर से जोड़ें।' : 'No content in this section yet. Add your first item using the editor.' }}</div>
                     <div v-else class="divide-y divide-slate-100">
                         <article v-for="item in filtered" :key="item.id" class="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0">
-                            <div class="min-w-0"><p class="font-semibold text-slate-800">{{ item.title || item.key || item.slug }}</p><p class="mt-1 text-xs text-slate-500">{{ item.key || item.slug || item.type }} · {{ item.is_published ? (hi ? 'प्रकाशित' : 'Published') : (hi ? 'ड्राफ्ट' : 'Draft') }}</p></div>
+                            <div class="min-w-0"><p class="font-semibold text-slate-800">{{ item.title || item.key || item.slug }}</p><p class="mt-1 text-xs text-slate-500">{{ item.key || item.slug || item.type }} · {{ item.is_published ? (hi ? 'सक्रिय' : 'Enabled') : (hi ? 'बंद' : 'Disabled') }}</p></div>
                             <div class="flex gap-2"><button @click="edit(item)" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-50">{{ hi ? 'एडिट' : 'Edit' }}</button><button @click="remove(item)" class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">{{ hi ? 'हटाएँ' : 'Delete' }}</button></div>
                         </article>
                     </div>
                 </section>
                 <form @submit.prevent="save" class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <div class="flex items-center justify-between"><h2 class="font-bold text-slate-900">{{ editingId ? (hi ? 'सामग्री अपडेट करें' : 'Edit content') : (hi ? 'नई सामग्री जोड़ें' : 'Add content') }}</h2><button v-if="editingId" type="button" @click="reset" class="text-xs font-semibold text-slate-500 hover:text-slate-900">{{ hi ? 'रद्द करें' : 'Cancel edit' }}</button></div>
-                    <label class="block text-sm font-semibold text-slate-700">{{ hi ? 'आंतरिक की (Key)' : 'Internal key' }}<input v-model="form.key" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="hero.title / footer.contact"></label>
+                    <label v-if="isSectionMode" class="block text-sm font-semibold text-slate-700">{{ hi ? 'सेक्शन का नाम' : 'Section name' }}<input v-model="form.title" required class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="Testimonials / FAQ / Announcement"></label>\n                    <label v-if="isSectionMode" class="block text-sm font-semibold text-slate-700">{{ hi ? 'ब्लॉक प्रकार' : 'Block type' }}<select v-model="form.content.section_type" class="mt-1 w-full rounded-xl border-slate-300 text-sm"><option value="custom">Custom content</option><option value="hero">Hero / Banner</option><option value="features">Features</option><option value="steps">How it works</option><option value="cta">Call to action</option></select></label>\n                    <label v-if="isSectionMode" class="block text-sm font-semibold text-slate-700">{{ hi ? 'आंतरिक की (Key)' : 'Section key' }}<input v-model="form.key" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="hero.title / footer.contact"></label>
                     <label v-if="['page','legal'].includes(activeType)" class="block text-sm font-semibold text-slate-700">{{ hi ? 'पेज शीर्षक' : 'Page title' }}<input v-model="form.title" required class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>
                     <label v-if="['page','legal'].includes(activeType)" class="block text-sm font-semibold text-slate-700">URL slug<input v-model="form.slug" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="about-us"></label>
-                    <label class="block text-sm font-semibold text-slate-700">English<textarea v-model="form.content.en" rows="4" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="English content"></textarea></label>
-                    <label class="block text-sm font-semibold text-slate-700">हिंदी<textarea v-model="form.content.hi" rows="4" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="हिंदी सामग्री"></textarea></label>
+                    <template v-if="isSectionMode">\n                        <label class="block text-sm font-semibold text-slate-700">English title<input v-model="form.content.en.title" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>\n                        <label class="block text-sm font-semibold text-slate-700">English description<textarea v-model="form.content.en.description" rows="3" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></textarea></label>\n                        <label class="block text-sm font-semibold text-slate-700">हिंदी शीर्षक<input v-model="form.content.hi.title" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>\n                        <label class="block text-sm font-semibold text-slate-700">हिंदी विवरण<textarea v-model="form.content.hi.description" rows="3" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></textarea></label>\n                    </template>\n                    <template v-else>\n                        <label class="block text-sm font-semibold text-slate-700">English<textarea v-model="form.content.en" rows="4" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="English content"></textarea></label>\n                        <label class="block text-sm font-semibold text-slate-700">हिंदी<textarea v-model="form.content.hi" rows="4" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="हिंदी सामग्री"></textarea></label>\n                    </template>
                     <label class="block text-sm font-semibold text-slate-700">{{ hi ? 'क्रम' : 'Display order' }}<input v-model.number="form.sort_order" type="number" min="0" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>
-                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-700"><input v-model="form.is_published" type="checkbox" class="rounded border-slate-300 text-indigo-600"> {{ hi ? 'सार्वजनिक रूप से प्रकाशित करें' : 'Publish publicly' }}</label>
+                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-700"><input v-model="form.is_published" type="checkbox" class="rounded border-slate-300 text-indigo-600"> {{ isSectionMode ? (hi ? 'होमपेज पर सेक्शन दिखाएँ' : 'Enable this section on homepage') : (hi ? 'सार्वजनिक रूप से प्रकाशित करें' : 'Publish publicly') }}</label>
                     <button :disabled="form.processing" class="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60">{{ form.processing ? (hi ? 'सेव हो रहा है...' : 'Saving...') : (hi ? 'सेव करें' : 'Save content') }}</button>
                     <p v-if="Object.keys(form.errors).length" class="text-xs text-rose-600">{{ Object.values(form.errors).join(' ') }}</p>
                 </form>
