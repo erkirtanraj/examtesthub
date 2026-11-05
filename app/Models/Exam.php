@@ -10,4 +10,5 @@ class Exam extends Model {
  public function creator(): BelongsTo { return $this->belongsTo(User::class,'created_by'); }
  public function questions(): BelongsToMany { return $this->belongsToMany(Question::class)->withPivot(['position','marks','negative_marks'])->withTimestamps()->orderByPivot('position'); }
  public function attempts(): HasMany { return $this->hasMany(ExamAttempt::class); }
+ public function testSeries(): BelongsToMany { return $this->belongsToMany(TestSeries::class,'test_series_exam')->withPivot(['position'])->withTimestamps(); }
 }
