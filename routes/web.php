@@ -63,7 +63,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  });
  Route::middleware('permission:courses.view')->group(function(){
   Route::get('/courses',[CourseManagementController::class,'index'])->name('courses.index');
-  Route::get('/courses/{course}/builder',[CourseManagementController::class,'builder'])->name('courses.builder');
+  Route::get('/courses/{course}/builder',[CourseManagementController::class,'builder'])->middleware('permission:lessons.manage')->name('courses.builder');
   Route::get('/courses/{course}/enrollments',[CourseManagementController::class,'enrollments'])->name('courses.enrollments');
  });
  Route::middleware('permission:courses.manage')->group(function(){
