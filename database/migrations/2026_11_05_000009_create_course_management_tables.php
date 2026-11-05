@@ -75,6 +75,7 @@ return new class extends Migration {
             $table->string('type', 12)->default('link');
             $table->string('url', 2048)->nullable();
             $table->string('file_path', 500)->nullable();
+            $table->string('original_name', 255)->nullable();
             $table->string('mime_type', 150)->nullable();
             $table->unsignedBigInteger('file_size')->nullable();
             $table->unsignedInteger('position')->default(1);
