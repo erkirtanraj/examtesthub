@@ -82,13 +82,15 @@ const studentItems = computed(() => [
     { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
-    { label: isHindi.value ? 'मेरा प्रदर्शन' : 'My Performance', href: '/student/performance', icon: 'reports' },
+    { label: isHindi.value ? 'मेरा प्रदर्शन' : 'My Performance', href: '/student/performance', icon: 'reports', permission: 'results.view-own' },
     { label: isHindi.value ? 'PDF सामग्री' : 'Study Materials', href: '/student/materials', icon: 'materials' },
     { label: isHindi.value ? 'टेस्ट सीरीज़' : 'Test Series', href: '/student/test-series', icon: 'series' },
     { label: isHindi.value ? 'मेरी टेस्ट सीरीज़' : 'My Test Series', href: '/student/my-test-series', icon: 'learning' },
     { label: isHindi.value ? 'उपलब्ध परीक्षाएँ' : 'Available Exams', href: '/student/exams', icon: 'exams' },
     { label: isHindi.value ? 'भुगतान इतिहास' : 'Payment History', href: '/student/payments', icon: 'payments' },
 ]);
+
+const visibleStudentItems = computed(() => studentItems.value.filter(item => !item.permission || user.value?.permissions?.includes(item.permission)));
 
 const visibleAdminGroups = computed(() => adminGroups.value.map(group => ({
     ...group,
@@ -172,7 +174,7 @@ watch(() => page.url, closeMobile);
                 </nav>
 
                 <nav v-else class="space-y-1" aria-label="Student navigation">
-                    <a v-for="item in studentItems" :key="item.href" :href="item.href" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition" :class="isActive(item.href) ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'">
+                    <a v-for="item in visibleStudentItems" :key="item.href" :href="item.href" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition" :class="isActive(item.href) ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'">
                         <component :is="iconMap[item.icon]" :size="18" />
                         {{ item.label }}
                     </a>
