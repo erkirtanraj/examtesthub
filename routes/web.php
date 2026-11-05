@@ -19,7 +19,7 @@ use App\Http\Controllers\Student\StudentExamController;
 use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');
+Route::get('/', function () {\n    $content = WebsiteContent::query()->where('is_published', true)->whereIn('type', ['home', 'menu', 'footer', 'contact'])->orderBy('sort_order')->get();\n    return Inertia::render('Welcome', ['websiteContent' => $content]);\n})->name('home');
 Route::get('/courses',[PublicCatalogController::class,'index'])->defaults('type','courses')->name('public.courses');
 Route::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');
 Route::get('/test-series',[PublicCatalogController::class,'index'])->defaults('type','test-series')->name('public.test-series');\nRoute::get('/pages/{slug}', function (string $slug) {\n    $page = WebsiteContent::query()->where('type', 'page')->where('slug', $slug)->where('is_published', true)->firstOrFail();\n    return Inertia::render('Public/Page', ['page' => ['title' => $page->title, 'content' => $page->content]]);\n})->name('public.page');
