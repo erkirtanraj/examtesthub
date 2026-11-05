@@ -14,6 +14,7 @@ class StudentExamController extends Controller {
   $exams=Exam::whereIn('status',['published','scheduled'])
    ->where(fn($q)=>$q->whereNull('starts_at')->orWhere('starts_at','<=',$now))
    ->where(fn($q)=>$q->whereNull('ends_at')->orWhere('ends_at','>',$now))
+   ->where(fn($q)=>$q->whereDoesntHave('testSeries')->orWhereHas('testSeries',fn($s)=>$s->where('status','published')->where(fn($w)=>$w->whereNull('starts_at')->orWhere('starts_at','<=',$now))->where(fn($w)=>$w->whereNull('ends_at')->orWhere('ends_at','>',$now))->whereHas('enrollments',fn($en)=>$en->where('user_id',$request->user()->id)->where('status','active'))))
    ->withCount('questions')->with(['attempts'=>fn($q)=>$q->where('user_id',$request->user()->id)->latest()])
    ->orderBy('title')->paginate(12)->through(fn($e)=>[
     'id'=>$e->id,'title'=>$e->title,'description'=>$e->description,'duration_minutes'=>$e->duration_minutes,
@@ -26,6 +27,7 @@ class StudentExamController extends Controller {
   $attempt=DB::transaction(function() use($request,$exam) {
    $e=Exam::whereKey($exam->id)->lockForUpdate()->firstOrFail(); $now=now();
    abort_unless(in_array($e->status,['published','scheduled'],true),404);
+   if($e->testSeries()->exists()){ $allowed=$e->testSeries()->where('status','published')->where(fn($w)=>$w->whereNull('starts_at')->orWhere('starts_at','<=',$now))->where(fn($w)=>$w->whereNull('ends_at')->orWhere('ends_at','>',$now))->whereHas('enrollments',fn($en)=>$en->where('user_id',$request->user()->id)->where('status','active'))->exists(); abort_unless($allowed,403,'An active test-series enrollment is required.'); }
    abort_if($e->starts_at && $e->starts_at->isFuture(),403,'Exam has not started.');
    abort_if($e->ends_at && $e->ends_at->lessThanOrEqualTo($now),403,'Exam has ended.');
    $active=ExamAttempt::where('exam_id',$e->id)->where('user_id',$request->user()->id)->where('status','in_progress')->latest()->first();
