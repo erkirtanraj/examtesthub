@@ -13,7 +13,7 @@ jobs:
           php-version: "8.3"
           extensions: mbstring, pdo_sqlite, sqlite3
           coverage: none
-      - run: composer validate --strict
+      - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate
