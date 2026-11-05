@@ -134,8 +134,8 @@ class ReportsAnalyticsTest extends TestCase
                 ->where('summary.students_total', 1)
                 ->where('summary.new_students', 1)
                 ->where('summary.attempts', 1)
-                ->where('summary.average_percentage', 80.0)
-                ->where('summary.revenue', 100.0)
+                ->where('summary.average_percentage', 80)
+                ->where('summary.revenue', 100)
                 ->where('summary.captured_payments', 1)
                 ->where('summary.series_enrollments', 1)
                 ->where('top_exams.0.title', 'Arithmetic Mock Test')
@@ -162,8 +162,8 @@ class ReportsAnalyticsTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Student/Performance/Index')
                 ->where('summary.attempts', 1)
-                ->where('summary.average_percentage', 90.0)
-                ->where('summary.best_percentage', 90.0)
+                ->where('summary.average_percentage', 90)
+                ->where('summary.best_percentage', 90)
                 ->where('recent_attempts.0.exam', 'My Mock Test')
                 ->has('recent_attempts', 1)
             );
