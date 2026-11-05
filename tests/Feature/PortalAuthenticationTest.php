@@ -69,6 +69,21 @@ class PortalAuthenticationTest extends TestCase
         $this->actingAs($user)->get('/student/dashboard')->assertForbidden();
     }
 
+    public function test_student_cannot_access_admin_dashboard(): void
+    {
+        $role = Role::create(['name' => 'Student', 'slug' => 'student']);
+        $student = User::create([
+            'name' => 'Test Student',
+            'email' => 'student-access-test@example.com',
+            'password' => Hash::make('StrongPassword!2026'),
+        ]);
+        $student->roles()->attach($role);
+
+        $this->actingAs($student)
+            ->get('/admin/dashboard')
+            ->assertForbidden();
+    }
+
     public function test_student_api_token_can_be_issued_and_used(): void
     {
         $role = Role::create(['name' => 'Student', 'slug' => 'student']);
