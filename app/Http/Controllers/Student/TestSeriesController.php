@@ -39,7 +39,7 @@ class TestSeriesController extends Controller
                 'id' => $s->id, 'title' => $s->title, 'access_type' => $s->access_type,
                 'price' => $s->price, 'exams_count' => $s->exams_count,
                 'enrollment' => ['status' => $s->enrollments->first()->status],
-                'exams' => $s->exams()->where('status', 'published')->get(['exams.id', 'exams.title', 'exams.duration_minutes']),
+                'exams' => $s->exams()->where('exams.status', 'published')->get(['exams.id', 'exams.title', 'exams.duration_minutes']),
             ]);
 
         return Inertia::render('Student/TestSeries/Mine', ['series' => $series]);
@@ -56,7 +56,7 @@ class TestSeriesController extends Controller
                 return;
             }
             $activeCount = $series->enrollments()->whereIn('status', ['active', 'pending_payment'])->count();
-            abort_if($series->max_enrollments && $activeCount >= $series->max_enrollments && ! $existing, 422, 'Enrollment limit reached.');
+            $alreadyReserved = $existing && in_array($existing->status, ['active', 'pending_payment'], true);\n            abort_if($series->max_enrollments && $activeCount >= $series->max_enrollments && ! $alreadyReserved, 422, 'Enrollment limit reached.');
 
             $status = $series->access_type === 'free' ? 'active' : 'pending_payment';
             TestSeriesEnrollment::updateOrCreate(
