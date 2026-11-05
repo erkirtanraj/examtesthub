@@ -2,8 +2,10 @@
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\ExamManagementController;
 use App\Http\Controllers\Admin\QuestionBankController;
+use App\Http\Controllers\Admin\TestSeriesController as AdminTestSeriesController;
 use App\Http\Controllers\Auth\PortalAuthenticationController;
 use App\Http\Controllers\Student\StudentExamController;
+use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');
@@ -61,10 +63,19 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::post('/exams',[ExamManagementController::class,'store'])->name('exams.store');
   Route::put('/exams/{exam}',[ExamManagementController::class,'update'])->name('exams.update');
   Route::patch('/exams/{exam}/status',[ExamManagementController::class,'updateStatus'])->name('exams.status');
+  Route::get('/test-series',[AdminTestSeriesController::class,'index'])->name('test-series.index');
+  Route::post('/test-series',[AdminTestSeriesController::class,'store'])->name('test-series.store');
+  Route::put('/test-series/{testSeries}',[AdminTestSeriesController::class,'update'])->name('test-series.update');
+  Route::patch('/test-series/{testSeries}/status',[AdminTestSeriesController::class,'updateStatus'])->name('test-series.status');
+  Route::get('/test-series/{testSeries}/enrollments',[AdminTestSeriesController::class,'enrollments'])->name('test-series.enrollments');
+  Route::post('/test-series/{testSeries}/enrollments/{user}/activate',[AdminTestSeriesController::class,'activateEnrollment'])->name('test-series.enrollments.activate');
  });
 });
 Route::middleware(['auth','active','role:student'])->prefix('student')->name('student.')->group(function(){
- Route::get('/dashboard',fn()=>redirect()->route('student.exams.index'))->name('dashboard');
+ Route::get('/dashboard',fn()=>Inertia::render('Student/Dashboard'))->name('dashboard');
+ Route::get('/test-series',[StudentTestSeriesController::class,'index'])->name('test-series.index');
+ Route::get('/my-test-series',[StudentTestSeriesController::class,'mySeries'])->name('test-series.mine');
+ Route::post('/test-series/{testSeries}/enroll',[StudentTestSeriesController::class,'enroll'])->middleware('throttle:10,1')->name('test-series.enroll');
  Route::get('/exams',[StudentExamController::class,'index'])->name('exams.index');
  Route::post('/exams/{exam}/start',[StudentExamController::class,'start'])->middleware('throttle:10,1')->name('exams.start');
  Route::get('/attempts/{attempt}',[StudentExamController::class,'show'])->name('exams.attempt');
