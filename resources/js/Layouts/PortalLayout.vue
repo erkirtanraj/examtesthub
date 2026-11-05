@@ -84,7 +84,8 @@ const adminGroups = computed(() => [
     {
         key: 'Settings', label: isHindi.value ? 'सेटिंग्स' : 'Settings', icon: 'settings',
         items: [
-            { label: isHindi.value ? 'विद्यार्थी प्रोफ़ाइल सेटिंग्स' : 'Student Profile Settings', href: '/admin/settings/student-profile', permission: 'settings.manage' },\n            { label: isHindi.value ? 'वेबसाइट कंटेंट मैनेजर' : 'Website Content Manager', href: '/admin/settings/website-content', permission: 'settings.manage' },
+            { label: isHindi.value ? 'विद्यार्थी प्रोफ़ाइल सेटिंग्स' : 'Student Profile Settings', href: '/admin/settings/student-profile', permission: 'settings.manage' },
+            { label: isHindi.value ? 'वेबसाइट कंटेंट मैनेजर' : 'Website Content Manager', href: '/admin/settings/website-content', permission: 'settings.manage' },
         ],
     },
 ]);
