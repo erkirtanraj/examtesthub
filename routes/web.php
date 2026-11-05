@@ -100,6 +100,7 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
   Route::get('/my-courses',[CourseController::class,'myCourses'])->name('courses.mine');
   Route::get('/courses/{course:slug}',[CourseController::class,'show'])->name('courses.show');
   Route::get('/courses/{course:slug}/lessons/{lesson}',[CourseController::class,'lesson'])->name('courses.lesson');
+  Route::get('/courses/{course:slug}/lessons/{lesson}/resources/{resource}',[CourseController::class,'downloadResource'])->name('courses.lessons.resources.download');
   Route::post('/courses/{course:slug}/enroll',[CourseController::class,'enroll'])->middleware('throttle:10,1')->name('courses.enroll');
   Route::post('/courses/{course:slug}/checkout',[PaymentController::class,'createCourseOrder'])->middleware('throttle:5,1')->name('courses.checkout');
   Route::post('/courses/{course:slug}/lessons/{lesson}/complete',[CourseController::class,'complete'])->middleware('throttle:30,1')->name('courses.lessons.complete');
