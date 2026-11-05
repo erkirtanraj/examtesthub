@@ -183,8 +183,28 @@ class CourseManagementController extends Controller
     public function storeResource(Request $request, Course $course, CourseLesson $lesson): RedirectResponse
     {
         abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
-        $data = $request->validate(['title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'], 'url' => ['required','url','starts_with:https://','max:2048']]);
-        $lesson->resources()->create([...$data, 'type' => 'link', 'position' => (int) $lesson->resources()->max('position') + 1]);
+        $data = $request->validate([
+            'title' => ['required','string','max:180'],
+            'title_hi' => ['nullable','string','max:180'],
+            'url' => ['nullable','required_without:file','url','starts_with:https://','max:2048'],
+            'file' => ['nullable','required_without:url','file','mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip','max:20480'],
+        ]);
+        $resource = [
+            'title' => $data['title'],
+            'title_hi' => $data['title_hi'] ?? null,
+            'position' => (int) $lesson->resources()->max('position') + 1,
+        ];
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $resource['type'] = 'file';
+            $resource['file_path'] = $file->store('course-resources/'.$course->id.'/'.$lesson->id, 'local');
+            $resource['mime_type'] = $file->getMimeType();
+            $resource['file_size'] = $file->getSize();
+        } else {
+            $resource['type'] = 'link';
+            $resource['url'] = $data['url'];
+        }
+        $lesson->resources()->create($resource);
         return back()->with('success', 'Resource link added.');
     }
 }
