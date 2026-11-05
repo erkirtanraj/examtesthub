@@ -86,6 +86,60 @@ class PaymentController extends Controller
         return redirect()->route('student.payments.checkout', $payment);
     }
 
+    public function createCourseOrder(Request $request, \App\Models\Course $course): RedirectResponse
+    {
+        abort_unless($course->isAvailable() && $course->access_type === 'paid', 404);
+        $config = $this->razorpayConfig();
+        $amountPaise = (int) round(((float) $course->price) * 100);
+        abort_if($amountPaise < 100, 422, 'The payment amount is invalid.');
+
+        $enrollment = DB::transaction(function () use ($request, $course) {
+            $lockedCourse = \App\Models\Course::whereKey($course->id)->lockForUpdate()->firstOrFail();
+            abort_unless($lockedCourse->isAvailable() && $lockedCourse->access_type === 'paid', 404);
+            $existing = \App\Models\CourseEnrollment::where('course_id', $lockedCourse->id)
+                ->where('user_id', $request->user()->id)->lockForUpdate()->first();
+            if ($existing?->status === 'active' || $existing?->status === 'completed') {
+                abort(409, 'You are already enrolled in this course.');
+            }
+            return \App\Models\CourseEnrollment::updateOrCreate(
+                ['course_id' => $lockedCourse->id, 'user_id' => $request->user()->id],
+                ['status' => 'pending_payment', 'amount_paid' => null, 'currency' => $lockedCourse->currency, 'enrolled_at' => null]
+            );
+        });
+
+        $receipt = 'course_'.$enrollment->id.'_'.Str::lower(Str::random(12));
+        $payment = Payment::create([
+            'course_enrollment_id' => $enrollment->id,
+            'user_id' => $request->user()->id,
+            'receipt' => $receipt,
+            'amount_paise' => $amountPaise,
+            'currency' => 'INR',
+            'status' => 'pending',
+        ]);
+
+        try {
+            $response = Http::withBasicAuth($config['key_id'], $config['key_secret'])
+                ->acceptJson()->timeout(20)->post(rtrim($config['base_url'], '/').'/orders', [
+                    'amount' => $amountPaise,
+                    'currency' => 'INR',
+                    'receipt' => $receipt,
+                    'notes' => ['payment_record_id' => (string) $payment->id, 'course_id' => (string) $course->id],
+                ]);
+            if (! $response->successful() || ! filled($response->json('id'))) {
+                $payment->update(['status' => 'failed', 'failure_description' => 'Order creation failed at payment provider.']);
+                Log::warning('Razorpay course order creation failed', ['payment_id' => $payment->id, 'status' => $response->status()]);
+                return back()->withErrors(['payment' => 'Unable to start payment. Please try again later.']);
+            }
+            $payment->update(['provider_order_id' => $response->json('id')]);
+        } catch (\\Throwable $exception) {
+            $payment->update(['status' => 'failed', 'failure_description' => 'Payment provider unavailable.']);
+            Log::error('Razorpay course order request failed', ['payment_id' => $payment->id, 'exception' => $exception::class]);
+            return back()->withErrors(['payment' => 'Payment service is temporarily unavailable.']);
+        }
+
+        return redirect()->route('student.payments.checkout', $payment);
+    }
+
     public function checkout(Request $request, Payment $payment): Response
     {
         abort_unless($payment->user_id === $request->user()->id, 404);
@@ -99,7 +153,7 @@ class PaymentController extends Controller
                 'amount' => $payment->amount_paise,
                 'currency' => $payment->currency,
                 'key_id' => $config['key_id'],
-                'series_title' => $payment->enrollment->series->title,
+                'series_title' => $payment->enrollment?->series?->title ?? $payment->courseEnrollment?->course?->title,
                 'student_name' => $request->user()->name,
                 'student_email' => $request->user()->email,
             ],
@@ -143,7 +197,9 @@ class PaymentController extends Controller
                 return;
             }
             abort_if($locked->status === 'refunded', 409, 'This payment has been refunded.');
-            $enrollment = TestSeriesEnrollment::whereKey($locked->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
+            $enrollment = $locked->course_enrollment_id
+                ? \\App\\Models\\CourseEnrollment::whereKey($locked->course_enrollment_id)->lockForUpdate()->firstOrFail()
+                : TestSeriesEnrollment::whereKey($locked->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
             $locked->update([
                 'provider_payment_id' => $providerPaymentId,
                 'status' => 'captured',
@@ -200,7 +256,9 @@ class PaymentController extends Controller
                 && (int) ($entity['amount'] ?? 0) === $payment->amount_paise
                 && ($entity['currency'] ?? null) === $payment->currency) {
                 if ($payment->status !== 'captured' && $payment->status !== 'refunded') {
-                    $enrollment = TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
+                    $enrollment = $payment->course_enrollment_id
+                        ? \\App\\Models\\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->firstOrFail()
+                        : TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
                     $payment->update([
                         'provider_payment_id' => $paymentId,
                         'status' => 'captured',
@@ -233,7 +291,7 @@ class PaymentController extends Controller
     public function studentIndex(Request $request): Response
     {
         return Inertia::render('Student/Payments/Index', [
-            'payments' => Payment::with('enrollment.series:id,title')
+            'payments' => Payment::with(['enrollment.series:id,title', 'courseEnrollment.course:id,title'])
                 ->where('user_id', $request->user()->id)->latest()->paginate(20),
         ]);
     }
@@ -241,7 +299,7 @@ class PaymentController extends Controller
     public function adminIndex(): Response
     {
         return Inertia::render('Admin/Payments/Index', [
-            'payments' => Payment::with(['user:id,name,email', 'enrollment.series:id,title'])->latest()->paginate(30),
+            'payments' => Payment::with(['user:id,name,email', 'enrollment.series:id,title', 'courseEnrollment.course:id,title'])->latest()->paginate(30),
         ]);
     }
 }
