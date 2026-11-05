@@ -14,7 +14,7 @@ const props = defineProps({
 });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
-const chartDays = computed(() => props.trend.slice(-30));
+const chartDays = computed(() => props.trend);
 const maxAttempts = computed(() => Math.max(1, ...chartDays.value.map(item => item.attempts)));
 const maxRevenue = computed(() => Math.max(1, ...chartDays.value.map(item => item.revenue)));
 const maxEnrollments = computed(() => Math.max(1, ...chartDays.value.map(item => item.course_enrollments + item.series_enrollments)));
@@ -130,8 +130,8 @@ function percent(value) {
 
                 <article class="overflow-hidden rounded-2xl border bg-white">
                     <div class="border-b p-4"><h2 class="font-extrabold">{{ hi ? 'नामांकन प्रवृत्ति' : 'Enrollment trend' }}</h2><p class="mt-1 text-xs text-slate-500">{{ hi ? 'कोर्स और टेस्ट सीरीज़ के सक्रिय/पूर्ण नामांकन' : 'Active or completed course and test-series enrollments' }}</p></div>
-                    <div class="space-y-3 p-4">
-                        <div v-for="item in chartDays.slice(-7)" :key="item.date" class="grid grid-cols-[54px_minmax(0,1fr)_42px] items-center gap-3 text-xs">
+                    <div class="max-h-64 space-y-3 overflow-y-auto p-4">
+                        <div v-for="item in chartDays" :key="item.date" class="grid grid-cols-[54px_minmax(0,1fr)_42px] items-center gap-3 text-xs">
                             <span class="text-slate-500">{{ item.label }}</span>
                             <div class="flex h-2 overflow-hidden rounded-full bg-slate-100">
                                 <div class="bg-indigo-500" :style="{ width: (item.course_enrollments / maxEnrollments * 100) + '%' }"/>
