@@ -1,14 +1,13 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Course;
-use App\\Models\\StudyMaterial;
-use App\\Models\\Subject;
-use App\\Models\\TestSeries;
-use Illuminate\\Http\\Request;
-use Inertia\\Inertia;
-use Inertia\\Response;
+use App\Models\Course;
+use App\Models\StudyMaterial;
+use App\Models\TestSeries;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PublicCatalogController extends Controller
 {
