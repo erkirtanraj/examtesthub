@@ -32,6 +32,7 @@ Route::middleware(['auth', 'active', 'role:super-admin|admin|content-manager|exa
 
         Route::middleware('permission:users.view')->group(function () {
             Route::get('/users', [AdminUserManagementController::class, 'users'])->name('users.index');
+            Route::get('/users/{user}', [AdminUserManagementController::class, 'showUser'])->name('users.show');
             Route::get('/users/export', [AdminUserManagementController::class, 'exportUsers'])->middleware('permission:users.export')->name('users.export');
         });
         Route::middleware('permission:users.manage')->group(function () {
