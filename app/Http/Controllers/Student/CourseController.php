@@ -105,6 +105,19 @@ class CourseController extends Controller
         ]);
     }
 
+    public function downloadResource(Request $request, Course $course, CourseLesson $lesson, \App\Models\CourseLessonResource $resource): StreamedResponse
+    {
+        abort_unless($resource->lesson_id === $lesson->id
+            && $lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
+        $enrollment = CourseEnrollment::where('course_id', $course->id)
+            ->where('user_id', $request->user()->id)
+            ->whereIn('status', ['active', 'completed'])->first();
+        abort_unless($enrollment || $lesson->is_preview, 403);
+        abort_unless($resource->type === 'file' && $resource->file_path
+            && Storage::disk('local')->exists($resource->file_path), 404);
+        return Storage::disk('local')->download($resource->file_path, basename($resource->file_path));
+    }
+
     public function complete(Request $request, Course $course, CourseLesson $lesson): RedirectResponse
     {
         abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->where('status', 'published')->exists(), 404);
