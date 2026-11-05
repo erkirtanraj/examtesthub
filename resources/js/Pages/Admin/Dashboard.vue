@@ -5,10 +5,10 @@ import PortalLayout from '../../Layouts/PortalLayout.vue';
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const cards = computed(() => hi.value ? [
-    { label: 'उपयोगकर्ता प्रबंधन', detail: 'विद्यार्थी और स्टाफ खाते', status: 'अगला मॉड्यूल' },
-    { label: 'कोर्स प्रबंधन', detail: 'कोर्स, अध्याय और पाठ', status: 'अगला मॉड्यूल' },
-    { label: 'परीक्षा प्रबंधन', detail: 'प्रश्न बैंक और टेस्ट सीरीज़', status: 'अगला मॉड्यूल' },
-    { label: 'भुगतान और रिपोर्ट', detail: 'लेनदेन और प्लेटफॉर्म रिपोर्ट', status: 'अगला मॉड्यूल' },
+    { label: 'उपयोगकर्ता प्रबंधन', detail: 'विद्यार्थी और स्टाफ खाते', status: 'उपलब्ध', href: '/admin/users' },
+    { label: 'भूमिका प्रबंधन', detail: 'भूमिकाएं और अनुमतियां', status: 'उपलब्ध', href: '/admin/roles' },
+    { label: 'गतिविधि लॉग', detail: 'प्रशासनिक बदलावों का रिकॉर्ड', status: 'उपलब्ध', href: '/admin/activity' },
+    { label: 'मेरी प्रोफ़ाइल', detail: 'प्रोफ़ाइल और पासवर्ड सुरक्षा', status: 'उपलब्ध', href: '/admin/profile' },
 ] : [
     { label: 'User management', detail: 'Student and staff accounts', status: 'Available', href: '/admin/users' },
     { label: 'Role management', detail: 'Roles and granular permissions', status: 'Available', href: '/admin/roles' },
