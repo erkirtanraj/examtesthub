@@ -99,15 +99,35 @@ class PaymentController extends Controller
             $lockedCourse = \App\Models\Course::whereKey($course->id)->lockForUpdate()->firstOrFail();
             abort_unless($lockedCourse->isAvailable() && $lockedCourse->access_type === 'paid', 404);
 
-            $enrollment = \App\Models\CourseEnrollment::updateOrCreate(
-                ['course_id' => $lockedCourse->id, 'user_id' => $request->user()->id],
-                ['status' => 'pending_payment', 'amount_paid' => null, 'currency' => $lockedCourse->currency, 'enrolled_at' => null]
-            );
-            $enrollment = \App\Models\CourseEnrollment::whereKey($enrollment->id)->lockForUpdate()->firstOrFail();
+            $enrollment = \App\Models\CourseEnrollment::where('course_id', $lockedCourse->id)
+                ->where('user_id', $request->user()->id)
+                ->lockForUpdate()
+                ->first();
 
-            if (in_array($enrollment->status, ['active', 'completed'], true)) {
+            if ($enrollment && in_array($enrollment->status, ['active', 'completed'], true)) {
                 abort(409, 'You are already enrolled in this course.');
             }
+
+            if (! $enrollment) {
+                $enrollment = \App\Models\CourseEnrollment::create([
+                    'course_id' => $lockedCourse->id,
+                    'user_id' => $request->user()->id,
+                    'status' => 'pending_payment',
+                    'amount_paid' => null,
+                    'currency' => $lockedCourse->currency,
+                    'enrolled_at' => null,
+                ]);
+            } else {
+                $enrollment->update([
+                    'status' => 'pending_payment',
+                    'amount_paid' => null,
+                    'currency' => $lockedCourse->currency,
+                    'enrolled_at' => null,
+                ]);
+            }
+
+            $amountPaise = (int) round(((float) $lockedCourse->price) * 100);
+            abort_if($amountPaise < 100, 422, 'The payment amount is invalid.');
 
             $pendingPayment = Payment::where('course_enrollment_id', $enrollment->id)
                 ->where('status', 'pending')
