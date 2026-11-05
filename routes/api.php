@@ -15,7 +15,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         ->middleware('throttle:5,1')
         ->name('auth.token.store');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active'])->group(function () {
         Route::get('/me', fn (Request $request) => response()->json([
             'data' => [
                 'id' => $request->user()->id,
