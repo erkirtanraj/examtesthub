@@ -107,6 +107,7 @@ class QuestionBankController extends Controller
 
     public function update(Request $request, Question $question): RedirectResponse
     {
+        abort_if($question->exams()->whereIn('status', ['published', 'scheduled'])->exists(), 422, 'Questions in a live or scheduled exam cannot be edited.');
         $data = $this->validatedQuestion($request);
         $question->update($data);
         $this->audit($request, 'question.updated', ['question_id' => $question->id, 'status' => $question->status]);
@@ -207,19 +208,26 @@ class QuestionBankController extends Controller
         DB::transaction(function () use ($handle, &$created, &$rejected, &$line, $request) {
             while (($row = fgetcsv($handle)) !== false) {
                 $line++;
-                if (count($row) !== count($GLOBALS['__question_import_expected'] ?? [])) {
-                    // The header count is checked below using the actual row values.
-                }
                 if (count($row) !== 11) { $rejected++; continue; }
                 [$subjectName, $topicName, $type, $prompt, $optionsJson, $answersJson, $explanation, $difficulty, $language, $marks, $negative] = $row;
                 $subject = Subject::where('name', trim($subjectName))->first();
                 $topic = $topicName !== '' ? $subject?->topics()->where('name', trim($topicName))->first() : null;
                 $options = json_decode($optionsJson, true);
                 $answers = json_decode($answersJson, true);
-                if (! $subject || ! is_array($answers) || ! in_array($type, ['single_choice', 'multiple_choice', 'true_false', 'short_answer'], true)
+                $validType = in_array($type, ['single_choice', 'multiple_choice', 'true_false', 'short_answer'], true);
+                $validAnswers = is_array($answers) && count($answers) > 0;
+                if (in_array($type, ['single_choice', 'multiple_choice'], true)) {
+                    $validAnswers = $validAnswers && is_array($options) && count($options) >= 2
+                        && array_diff($answers, array_keys($options)) === []
+                        && ($type !== 'single_choice' || count($answers) === 1);
+                } elseif ($type === 'true_false') {
+                    $validAnswers = $validAnswers && count($answers) === 1 && in_array($answers[0], ['true', 'false'], true);
+                    $options = ['true' => 'True', 'false' => 'False'];
+                }
+                if (! $subject || ($topicName !== '' && ! $topic) || ! $validType || ! $validAnswers
                     || ! in_array($difficulty, ['easy', 'medium', 'hard'], true) || ! in_array($language, ['en', 'hi'], true)
-                    || ! is_numeric($marks) || ! is_numeric($negative) || trim($prompt) === ''
-                    || (in_array($type, ['single_choice', 'multiple_choice'], true) && (! is_array($options) || count($options) < 2))) {
+                    || ! is_numeric($marks) || (float) $marks <= 0 || ! is_numeric($negative) || (float) $negative < 0
+                    || trim($prompt) === '') {
                     $rejected++;
                     continue;
                 }
