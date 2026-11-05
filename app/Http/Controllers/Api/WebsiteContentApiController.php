@@ -27,7 +27,7 @@ class WebsiteContentApiController extends Controller
 
     public function page(string $slug): JsonResponse
     {
-        $page = WebsiteContent::query()->where('type', 'page')
+        $page = WebsiteContent::query()->whereIn('type', ['page', 'legal'])
             ->where('slug', $slug)->where('is_published', true)->firstOrFail();
 
         return response()->json(['data' => [
