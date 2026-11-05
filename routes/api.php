@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ApiTokenController;
+use App\Http\Controllers\Api\WebsiteContentApiController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -8,7 +9,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::post('/payments/razorpay/webhook', [PaymentController::class, 'webhook'])
         ->middleware('throttle:120,1')->name('payments.razorpay.webhook');
-    Route::get('/website-content', [WebsiteContentApiController::class, 'index'])->name('website-content.index');\n    Route::get('/pages/{slug}', [WebsiteContentApiController::class, 'page'])->name('website-content.page');\n    Route::get('/health', fn () => response()->json([
+    Route::get('/website-content', [WebsiteContentApiController::class, 'index'])->name('website-content.index');
+    Route::get('/pages/{slug}', [WebsiteContentApiController::class, 'page'])->name('website-content.page');
+    Route::get('/health', fn () => response()->json([
         'status' => 'ok',
         'service' => 'examtesthub-api',
         'version' => '1.0.0',
