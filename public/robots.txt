@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Private application areas
+Disallow: /admin/
+Disallow: /student/
+Disallow: /api/
+
+Sitemap: https://examtesthub.in/sitemap.xml
