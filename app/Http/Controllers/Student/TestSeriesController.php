@@ -56,7 +56,8 @@ class TestSeriesController extends Controller
                 return;
             }
             $activeCount = $series->enrollments()->whereIn('status', ['active', 'pending_payment'])->count();
-            $alreadyReserved = $existing && in_array($existing->status, ['active', 'pending_payment'], true);\n            abort_if($series->max_enrollments && $activeCount >= $series->max_enrollments && ! $alreadyReserved, 422, 'Enrollment limit reached.');
+            $alreadyReserved = $existing && in_array($existing->status, ['active', 'pending_payment'], true);
+            abort_if($series->max_enrollments && $activeCount >= $series->max_enrollments && ! $alreadyReserved, 422, 'Enrollment limit reached.');
 
             $status = $series->access_type === 'free' ? 'active' : 'pending_payment';
             TestSeriesEnrollment::updateOrCreate(
