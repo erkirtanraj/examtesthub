@@ -78,7 +78,7 @@ class PortalAuthenticationController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password) || ! $user->hasAnyRole($allowedRoles)) {
+        if (! $user || ! $user->is_active || ! Hash::check($credentials['password'], $user->password) || ! $user->hasAnyRole($allowedRoles)) {
             throw ValidationException::withMessages([
                 'email' => 'The supplied credentials are invalid for this portal.',
             ]);
