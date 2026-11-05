@@ -1,8 +1,31 @@
 <?php
+
 namespace App\Http\Middleware;
+
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-class HandleInertiaRequests extends Middleware {
- protected $rootView = 'app';
- public function share(Request $request): array { return [...parent::share($request), 'appName'=>config('app.name'), 'locale'=>app()->getLocale(), 'auth'=>['user'=>$request->user()]]; }
+
+class HandleInertiaRequests extends Middleware
+{
+    protected $rootView = 'app';
+
+    public function share(Request $request): array
+    {
+        $user = $request->user();
+
+        return [
+            ...parent::share($request),
+            'appName' => config('app.name'),
+            'locale' => app()->getLocale(),
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'preferred_locale' => $user->preferred_locale,
+                    'roles' => $user->roles()->pluck('slug'),
+                ] : null,
+            ],
+        ];
+    }
 }
