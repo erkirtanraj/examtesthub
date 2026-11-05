@@ -2,12 +2,12 @@
 import { computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
-defineProps({courses:Object});
+const props=defineProps({courses:Object,mine:{type:Boolean,default:false}});
 const page=usePage(); const hi=computed(()=>page.props.locale==='hi');
 function enroll(course){if(course.access_type==='paid'){router.post('/student/courses/'+course.slug+'/checkout');return;}router.post('/student/courses/'+course.slug+'/enroll');}
 </script>
 <template>
-<PortalLayout portal="student" :title="hi?'कोर्स कैटलॉग':'Course catalogue'" :subtitle="hi?'अपने कौशल और परीक्षा की तैयारी के लिए कोर्स चुनें।':'Explore structured courses, lessons and learning resources.'">
+<PortalLayout portal="student" :title="mine?(hi?'मेरे कोर्स':'My courses'):(hi?'कोर्स कैटलॉग':'Course catalogue')" :subtitle="mine?(hi?'अपने नामांकित कोर्स और प्रगति देखें।':'Continue your enrolled courses and learning progress.'):(hi?'अपने कौशल और परीक्षा की तैयारी के लिए कोर्स चुनें।':'Explore structured courses, lessons and learning resources.')">
 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 <article v-for="course in courses.data" :key="course.id" class="flex min-w-0 flex-col rounded-2xl border bg-white p-5">
 <div class="flex items-start justify-between gap-3"><span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">{{course.category||'Course'}}</span><span class="text-sm font-extrabold">{{course.access_type==='paid'?'₹ '+course.price:(hi?'मुफ्त':'FREE')}}</span></div>
