@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import {
     ArrowRight, BookOpen, ClipboardCheck, FileText, GraduationCap,
-    ChartNoAxesCombined, ShieldCheck, Menu, X, Sparkles, CheckCircle2,
+    TrendingUp, ShieldCheck, Menu, X, Sparkles, CheckCircle2,
 } from 'lucide-vue-next';
 
 const locale = ref('en');
@@ -64,7 +64,7 @@ const features = computed(() => [
     { icon: GraduationCap, title: copy.value.courses, description: copy.value.coursesText, href: '/register', tone: 'indigo' },
     { icon: ClipboardCheck, title: copy.value.tests, description: copy.value.testsText, href: '/register', tone: 'amber' },
     { icon: FileText, title: copy.value.materials, description: copy.value.materialsText, href: '/register', tone: 'emerald' },
-    { icon: ChartNoAxesCombined, title: copy.value.performance, description: copy.value.performanceText, href: '/register', tone: 'violet' },
+    { icon: TrendingUp, title: copy.value.performance, description: copy.value.performanceText, href: '/register', tone: 'violet' },
 ]);
 
 const steps = computed(() => [
@@ -235,9 +235,7 @@ const steps = computed(() => [
                     <div><p class="font-extrabold text-slate-900">ExamTestHub</p><p class="text-xs text-slate-500">{{ copy.footerLine }}</p></div>
                 </div>
                 <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium text-slate-500">
-                    <a href="/privacy" class="hover:text-brand-700">{{ copy.privacy }}</a>
-                    <a href="/terms" class="hover:text-brand-700">{{ copy.terms }}</a>
-                    <a href="mailto:support@examtesthub.com" class="hover:text-brand-700">{{ copy.contact }}</a>
+                    <a href="/student/login" class="hover:text-brand-700">{{ copy.studentLogin }}</a>
                     <a href="/admin/login" class="hover:text-brand-700">{{ copy.adminAccess }}</a>
                 </div>
                 <p class="text-xs text-slate-400">© {{ new Date().getFullYear() }} ExamTestHub. All rights reserved.</p>
