@@ -85,7 +85,7 @@ class AdminUserManagementController extends Controller
 
     public function updateUser(Request $request, User $user): RedirectResponse
     {
-        abort_if($user->hasRole('super-admin') && ! $request->user()->hasRole('super-admin'), 403);
+        abort_if(($user->hasRole('super-admin') || $user->hasRole('admin')) && ! $request->user()->hasRole('super-admin'), 403);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
@@ -271,7 +271,8 @@ class AdminUserManagementController extends Controller
     private function assertAssignableRoles(Request $request, array $slugs): void
     {
         if (! $request->user()->hasRole('super-admin')) {
-            abort_if(in_array('super-admin', $slugs, true) || in_array('admin', $slugs, true), 403, 'Only a Super Admin may assign privileged roles.');
+            $safeRoles = ['student', 'content-manager', 'exam-manager'];
+            abort_if(array_diff($slugs, $safeRoles) !== [], 403, 'Only a Super Admin may assign privileged or custom roles.');
         }
     }
 }
