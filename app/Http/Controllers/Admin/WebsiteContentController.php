@@ -188,7 +188,31 @@ class WebsiteContentController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ]);
 
+        if (($data['content']['section_type'] ?? null) === 'html') {
+            foreach (['en', 'hi'] as $locale) {
+                if (isset($data['content'][$locale]['html'])) {
+                    $data['content'][$locale]['html'] = $this->sanitizeHomepageHtml($data['content'][$locale]['html']);
+                }
+            }
+        }
+
         return [...$data, 'sort_order' => $data['sort_order'] ?? 0];
+    }
+
+
+    /**
+     * Keep custom homepage markup to a small, attribute-free HTML allowlist.
+     */
+    private function sanitizeHomepageHtml(string $html): string
+    {
+        $html = preg_replace('/<(script|style|iframe|object|embed)[^>]*>.*?<\\/\\1>/is', '', $html) ?? '';
+        $html = strip_tags($html, '<h1><h2><h3><h4><p><div><span><strong><b><em><i><ul><ol><li><br><hr><blockquote>');
+        return preg_replace_callback('/<\\/?([a-z0-9]+)\\b[^>]*>/i', function ($match) {
+            $tag = strtolower($match[1]);
+            $allowed = ['h1','h2','h3','h4','p','div','span','strong','b','em','i','ul','ol','li','br','hr','blockquote'];
+            if (!in_array($tag, $allowed, true)) return '';
+            return str_starts_with($match[0], '</') ? '</' . $tag . '>' : '<' . $tag . '>';
+        }, $html) ?? '';
     }
 
     private function audit(Request $request, string $action, array $metadata): void
