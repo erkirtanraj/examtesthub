@@ -106,7 +106,7 @@ class CourseManagementController extends Controller
     {
         return Inertia::render('Admin/Courses/Enrollments', [
             'course' => $course->only(['id', 'title', 'title_hi', 'access_type', 'price']),
-            'enrollments' => $course->enrollments()->with('user:id,name,email')->withCount('progress')->latest()->paginate(30),
+            'enrollments' => $course->enrollments()->with('user:id,name,email')->withCount(['progress as completed_lessons_count' => fn ($query) => $query->where('status', 'completed')])->latest()->paginate(30),
         ]);
     }
 
