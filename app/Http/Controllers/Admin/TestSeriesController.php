@@ -32,7 +32,7 @@ class TestSeriesController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/TestSeries/Index', [
-            'series' => TestSeries::withCount(['exams', 'enrollments'])->latest('id')->paginate(15),
+            'series' => TestSeries::with(['exams:id'])->withCount(['exams', 'enrollments'])->latest('id')->paginate(15),
             'exams' => Exam::where('status', 'published')->orderBy('title')->get(['id', 'title', 'duration_minutes']),
         ]);
     }
