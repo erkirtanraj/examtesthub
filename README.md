@@ -1,40 +1,105 @@
 # ExamTestHub
 
-Bilingual (Hindi + English) EdTech platform for free/paid LMS courses, online test series and PDF notes.
+ExamTestHub is a bilingual (Hindi + English) learning and exam platform built with Laravel, Vue 3 and Inertia.js. The repository contains working application modules for administration, question banks, online exams, test series, Razorpay payments and LMS courses.
 
-## Current implementation status
+## Implementation status
 
-The documentation baseline is preserved. The initial Laravel/Vue application foundation is now scaffolded on the development branch **feature/phase-1-foundation**. It includes the Laravel application entry points, Vue 3 + Inertia landing page, basic configuration, initial user schema, versioned API health route and CI workflow.
+The following modules are implemented in the current `main` branch:
 
-**Important:** This is an early scaffold, not a production-ready application. Composer/npm dependency resolution, local execution, automated test results and CI status have not yet been verified in a PHP/Node runtime. Authentication workflows, RBAC, Redis-backed infrastructure and all commerce/LMS/exam/PDF modules remain future work.
+- Authentication, separate admin/student portals, role and permission checks, and audit logging.
+- Admin user management, CSV import/export, subjects, topics and question-bank workflows.
+- Exam authoring and the student test-taking flow.
+- Free and paid test-series enrollment, with Razorpay order creation, server-side payment verification and signed webhook processing.
+- LMS course administration with bilingual course details and curriculum hierarchy: course → sections → chapters → lessons.
+- Free previews, paid course access, private lesson resources, student enrollment, lesson completion and progress/resume.
+- Responsive portal navigation and admin/student payment history.
 
-## Project documents
+Phase 7 LMS Course Management was merged into `main` in November 2026. Its final GitHub Actions run passed the PHP feature-test job and the Vite production-build job. See [Phase 7 implementation notes](docs/PHASE-7-LMS-COURSE-MANAGEMENT.md) for scope and remaining manual verification.
 
+**Production readiness is not implied by a passing CI run.** Database migrations must be tested against the target database, responsive behavior must be checked in browsers/devices, and Razorpay must be verified with sandbox credentials and a configured webhook before production use. No production deployment or live payment acceptance is claimed here.
+
+## Technology
+
+- PHP 8.3+ and Laravel 13
+- Vue 3, Inertia.js and Tailwind CSS 4
+- Vite for frontend builds
+- MySQL 8+ or a verified compatible MariaDB version
+- Razorpay for checkout and payment verification
+
+Redis-backed queues/cache, large-scale capacity and production multi-node deployment require environment-specific configuration and validation; they are not capacity claims of this repository.
+
+## Local development
+
+Prerequisites: PHP 8.3+, Composer, Node.js/npm, and a supported database.
+
+1. Clone the repository and install dependencies:
+
+   ```powershell
+   composer install
+   npm install
+   ```
+
+2. Create the local environment file and application key:
+
+   ```powershell
+   Copy-Item .env.example .env
+   php artisan key:generate
+   ```
+
+3. Configure the database values in `.env`. Review migrations before applying them:
+
+   ```powershell
+   php artisan migrate:status
+   php artisan migrate --pretend
+   php artisan migrate
+   ```
+
+4. Build the frontend and start the application:
+
+   ```powershell
+   npm run build
+   php artisan serve
+   ```
+
+For frontend development with hot reload, use `npm run dev` in a second terminal.
+
+## Tests and build
+
+Run the PHP feature suite and frontend production build:
+
+```powershell
+php artisan test
+npm run build
+```
+
+The GitHub Actions workflow also runs Composer validation, PHP tests and the frontend build for pull requests.
+
+## Razorpay configuration
+
+Set the following values only in the local/deployment environment. Never commit API secrets or webhook secrets:
+
+```dotenv
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+RAZORPAY_BASE_URL=https://api.razorpay.com/v1
+```
+
+Use Razorpay test credentials and configure the signed webhook URL before testing checkout end to end. Payment activation depends on server-side verification, not the browser callback alone.
+
+## Project documentation
+
+- [Product requirements](docs/PRD.md)
+- [Technical requirements](docs/TRD.md)
+- [Business logic](docs/LOGIC.md)
+- [UI/UX specification](docs/UI.md)
+- [Architecture decisions](docs/ADR.md)
 - [Roadmap](docs/ROADMAP.md)
-- [Business Logic](docs/LOGIC.md)
-- [PRD](docs/PRD.md)
-- [TRD](docs/TRD.md)
-- [UI/UX Document](docs/UI.md)
-- [Architecture Decisions](docs/ADR.md)
-- [Delivery and QA Plan](docs/DELIVERY.md)
-- [Phase 1 implementation notes](docs/PHASE1.md)
-
-## Technology baseline
-
-- Laravel 13 / PHP 8.3+
-- Vue 3 + Inertia.js
-- Tailwind CSS 4 + Vite
-- MySQL 8+ or verified compatible MariaDB
-- Redis planned for shared cache, sessions and queues
-- Sanctum for future API authentication
-- Razorpay planned for payment processing
-
-Dependency versions must be resolved and locked in a real development environment before deployment.
-
-## Build sequence
-
-Foundation -> authentication/RBAC/i18n -> catalog/orders/entitlements -> LMS -> question bank and exam runtime -> results -> PDF library -> REST API -> security/performance -> controlled production rollout.
+- [Delivery and QA plan](docs/DELIVERY.md)
+- [Phase 6 — Payment Gateway](docs/PHASE6-PAYMENT-GATEWAY.md)
+- [Phase 7 — LMS Course Management](docs/PHASE-7-LMS-COURSE-MANAGEMENT.md)
+- [Admin Navigation and Responsive UI](docs/ADMIN-NAVIGATION-RESPONSIVE.md)
 
 ## Capacity statement
 
-50,000 concurrent active users is a capacity target requiring production-like load, failure and recovery testing. It is not a current capacity claim. A single small CloudPanel VPS is not sufficient evidence for this target.
+Any target such as 50,000 concurrent active users requires production-like load, spike, soak, failure and recovery testing on the intended infrastructure. It is a target to validate, not a current performance or capacity claim.
