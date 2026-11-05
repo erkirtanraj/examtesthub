@@ -148,7 +148,7 @@ class CourseManagementController extends Controller
             'title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'],
             'description' => ['nullable','string','max:10000'], 'description_hi' => ['nullable','string','max:10000'],
             'type' => ['required', Rule::in(['video','text'])], 'video_url' => ['nullable','url','starts_with:https://','max:2048'],
-            'content' => ['nullable','string','max:100000'], 'is_preview' => ['boolean'],
+            'content' => ['nullable','string','max:100000'], 'content_hi' => ['nullable','string','max:100000'], 'is_preview' => ['boolean'],
             'duration_minutes' => ['nullable','integer','min:0','max:65535'],
             'status' => ['required', Rule::in(['draft','published'])],
         ]);
@@ -183,7 +183,7 @@ class CourseManagementController extends Controller
     public function storeResource(Request $request, Course $course, CourseLesson $lesson): RedirectResponse
     {
         abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
-        $data = $request->validate(['title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'], 'url' => ['required','url','max:2048']]);
+        $data = $request->validate(['title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'], 'url' => ['required','url','starts_with:https://','max:2048']]);
         $lesson->resources()->create([...$data, 'type' => 'link', 'position' => (int) $lesson->resources()->max('position') + 1]);
         return back()->with('success', 'Resource link added.');
     }
