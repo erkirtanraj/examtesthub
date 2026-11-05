@@ -76,10 +76,17 @@ const adminGroups = computed(() => [
             { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/admin/profile', permission: 'profile.manage' },
         ],
     },
+    {
+        key: 'Settings', label: isHindi.value ? 'सेटिंग्स' : 'Settings', icon: 'settings',
+        items: [
+            { label: isHindi.value ? 'विद्यार्थी प्रोफ़ाइल सेटिंग्स' : 'Student Profile Settings', href: '/admin/settings/student-profile', permission: 'settings.manage' },
+        ],
+    },
 ]);
 
 const studentItems = computed(() => [
     { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
+    { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/student/profile', icon: 'profile', permission: 'profile.manage' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
     { label: isHindi.value ? 'मेरा प्रदर्शन' : 'My Performance', href: '/student/performance', icon: 'reports', permission: 'results.view-own' },
@@ -127,7 +134,7 @@ watch(() => page.url, closeMobile);
                     <span class="hidden rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 sm:inline-flex">{{ isAdmin ? 'ADMIN' : 'STUDENT' }}</span>
                 </div>
                 <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
-                    <span class="hidden max-w-40 truncate text-sm font-medium text-slate-600 md:inline">{{ user?.name }}</span>
+                    <a :href="isAdmin ? '/admin/profile' : '/student/profile'" class="inline-flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 px-2.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700" :aria-label="isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile'"><UserRound :size="17" class="shrink-0" /><span class="hidden max-w-40 truncate md:inline">{{ user?.name }}</span><span class="sr-only">{{ isHindi ? 'प्रोफ़ाइल खोलें' : 'Open profile' }}</span></a>
                     <div class="flex items-center rounded-xl border border-slate-200 p-0.5">
                         <button type="button" @click="switchLanguage('en')" class="rounded-lg px-2 py-1.5 text-xs font-semibold sm:text-sm" :class="!isHindi ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'">EN</button>
                         <button type="button" @click="switchLanguage('hi')" class="rounded-lg px-2 py-1.5 text-xs font-semibold sm:text-sm" :class="isHindi ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'">हिंदी</button>
