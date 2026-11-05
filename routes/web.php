@@ -49,6 +49,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  Route::get('/reports',[ReportsController::class,'index'])->middleware('permission:reports.view')->name('reports.index');
  Route::get('/settings/student-profile',[StudentProfileSettingsController::class,'index'])->middleware('permission:settings.manage')->name('settings.student-profile');
  Route::get('/settings/website-content',[WebsiteContentController::class,'index'])->middleware('permission:settings.manage')->name('settings.website-content');
+ Route::put('/settings/website-content/layout',[WebsiteContentController::class,'saveLayout'])->middleware('permission:settings.manage')->name('settings.website-content.layout');
  Route::post('/settings/website-content',[WebsiteContentController::class,'store'])->middleware('permission:settings.manage')->name('settings.website-content.store');
  Route::put('/settings/website-content/{websiteContent}',[WebsiteContentController::class,'update'])->middleware('permission:settings.manage')->name('settings.website-content.update');
  Route::delete('/settings/website-content/{websiteContent}',[WebsiteContentController::class,'destroy'])->middleware('permission:settings.manage')->name('settings.website-content.destroy');
