@@ -21,7 +21,7 @@ class ApiTokenController extends Controller
 
         $user = User::where('email', $data['email'])->first();
 
-        if (! $user || ! Hash::check($data['password'], $user->password) || ! $user->hasRole('student')) {
+        if (! $user || ! $user->is_active || ! Hash::check($data['password'], $user->password) || ! $user->hasRole('student')) {
             throw ValidationException::withMessages([
                 'email' => ['The supplied credentials are invalid.'],
             ]);
