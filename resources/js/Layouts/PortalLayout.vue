@@ -14,7 +14,7 @@ function logout(){router.post('/logout')}function switchLanguage(next){router.ge
 <a :href="portal==='admin'?'/admin/dashboard':'/student/dashboard'" class="block rounded-xl bg-indigo-50 px-3 py-2.5 text-sm font-bold text-indigo-700">{{isHindi?'डैशबोर्ड':'Dashboard'}}</a>
 <a v-if="portal==='student'" href="/student/test-series" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{isHindi?'टेस्ट सीरीज़':'Test series'}}</a>
 <a v-if="portal==='student'" href="/student/my-test-series" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{isHindi?'मेरी सीरीज़':'My test series'}}</a>
-<a v-if="portal==='student'" href="/student/exams" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{isHindi?'उपलब्ध परीक्षाएँ':'Available exams'}}</a>
+<a v-if="portal==='student'" href="/student/payments" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{isHindi?'भुगतान इतिहास':'Payment history'}}</a>\n<a v-if="portal==='student'" href="/student/exams" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{isHindi?'उपलब्ध परीक्षाएँ':'Available exams'}}</a>
 <template v-if="portal==='admin'">
 <a v-if="user?.permissions?.includes('users.view')" href="/admin/users" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'उपयोगकर्ता':'Users'}}</a>
 <a v-if="user?.permissions?.includes('roles.manage')" href="/admin/roles" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'भूमिकाएँ':'Roles'}}</a>
@@ -22,7 +22,7 @@ function logout(){router.post('/logout')}function switchLanguage(next){router.ge
 <a v-if="user?.permissions?.includes('questions.manage')" href="/admin/questions" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'प्रश्न बैंक':'Question bank'}}</a>
 <a v-if="user?.permissions?.includes('questions.manage')" href="/admin/subjects" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'विषय और टॉपिक':'Subjects & topics'}}</a>
 <a v-if="user?.permissions?.includes('tests.manage')" href="/admin/test-series" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'टेस्ट सीरीज़':'Test series'}}</a>
-<a v-if="user?.permissions?.includes('tests.manage')" href="/admin/exams" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'परीक्षा प्रबंधन':'Exam management'}}</a>
+<a v-if="user?.permissions?.includes('tests.manage')" href="/admin/payments" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'भुगतान प्रबंधन':'Payments'}}</a>\n<a v-if="user?.permissions?.includes('tests.manage')" href="/admin/exams" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'परीक्षा प्रबंधन':'Exam management'}}</a>
 <a v-if="user?.permissions?.includes('audit.view')" href="/admin/activity" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'गतिविधि लॉग':'Audit activity'}}</a>
 <a v-if="user?.permissions?.includes('profile.manage')" href="/admin/profile" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600">{{isHindi?'मेरी प्रोफ़ाइल':'My profile'}}</a>
 </template></nav></aside><main><div class="mb-6"><p class="text-sm font-semibold text-indigo-600">{{portal==='admin'?'ExamTestHub Admin':'ExamTestHub Learning'}}</p><h1 class="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">{{title}}</h1><p class="mt-2 text-slate-500">{{subtitle}}</p></div><slot/></main></div></div>
