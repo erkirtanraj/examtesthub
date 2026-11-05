@@ -68,7 +68,7 @@ class CourseManagementController extends Controller
             'description_hi' => ['nullable', 'string', 'max:30000'],
             'category' => ['nullable', 'string', 'max:120'],
             'access_type' => ['required', Rule::in(['free', 'paid'])],
-            'price' => [$request->input('access_type') === 'paid' ? 'required' : 'nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'price' => [$request->input('access_type') === 'paid' ? 'required' : 'nullable', 'numeric', 'min:'.($request->input('access_type') === 'paid' ? '1' : '0'), 'max:99999999.99'],
             'currency' => ['required', 'in:INR'],
             'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
             'starts_at' => ['nullable', 'date'],
@@ -76,7 +76,7 @@ class CourseManagementController extends Controller
         ]);
         if ($data['access_type'] === 'free') $data['price'] = 0;
         if ($data['status'] === 'published') {
-            abort_if($request->route('course') && $request->route('course')->sections()->whereHas('chapters.lessons', fn ($q) => $q->where('status', 'published'))->doesntExist(), 422, 'A course needs at least one published lesson before publishing.');
+            $existingCourse = $request->route('course');\n            abort_if(! $existingCourse || ! $existingCourse->sections()->whereHas('chapters.lessons', fn ($q) => $q->where('status', 'published'))->exists(), 422, 'Add at least one published lesson before publishing a course.');
             $data['published_at'] = now();
         }
         return $data;
@@ -138,12 +138,12 @@ class CourseManagementController extends Controller
         $data = $request->validate([
             'title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'],
             'description' => ['nullable','string','max:10000'], 'description_hi' => ['nullable','string','max:10000'],
-            'type' => ['required', Rule::in(['video','text'])], 'video_url' => ['nullable','url','max:2048'],
+            'type' => ['required', Rule::in(['video','text'])], 'video_url' => ['nullable','url','starts_with:https://','max:2048'],
             'content' => ['nullable','string','max:100000'], 'is_preview' => ['boolean'],
             'duration_minutes' => ['nullable','integer','min:0','max:65535'],
             'status' => ['required', Rule::in(['draft','published'])],
         ]);
-        if ($data['type'] === 'video') abort_if(blank($data['video_url'] ?? null), 422, 'Video URL is required for video lessons.');
+        if ($data['type'] === 'video') {\n            abort_if(blank($data['video_url'] ?? null), 422, 'Video URL is required for video lessons.');\n            $host = strtolower((string) parse_url($data['video_url'], PHP_URL_HOST));\n            abort_unless(in_array($host, ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'www.vimeo.com', 'player.vimeo.com'], true), 422, 'Use a supported YouTube or Vimeo video URL.');\n        }
         if ($data['type'] === 'text') abort_if(blank($data['content'] ?? null), 422, 'Lesson content is required for text lessons.');
         $data['position'] = (int) $chapter->lessons()->max('position') + 1;
         $chapter->lessons()->create($data);
