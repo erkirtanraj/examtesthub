@@ -14,11 +14,15 @@ use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\TestSeriesController as AdminTestSeriesController;
 use App\Http\Controllers\Auth\PortalAuthenticationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\Student\StudentExamController;
 use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');\nRoute::get('/courses',[PublicCatalogController::class,'index'])->defaults('type','courses')->name('public.courses');\nRoute::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');\nRoute::get('/test-series',[PublicCatalogController::class,'index'])->defaults('type','test-series')->name('public.test-series');
+Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');
+Route::get('/courses',[PublicCatalogController::class,'index'])->defaults('type','courses')->name('public.courses');
+Route::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');
+Route::get('/test-series',[PublicCatalogController::class,'index'])->defaults('type','test-series')->name('public.test-series');
 Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);$user=request()->user();if($user&&(!$user->hasRole('student')||StudentProfileSetting::current()->allow_language_edit))$user->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
 Route::middleware('guest')->group(function(){
  Route::get('/admin/login',[PortalAuthenticationController::class,'adminLoginPage'])->name('admin.login');
