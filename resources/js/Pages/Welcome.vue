@@ -9,6 +9,9 @@ import {
 const locale = ref('en');
 const mobileMenuOpen = ref(false);
 const page = usePage();
+const homepageSections = computed(() => page.props.homepageSections || []);
+const sectionEnabled = key => homepageSections.value.some(section => section.key === ('section.' + key) && section.is_published);
+const customSections = computed(() => homepageSections.value.filter(section => section.content?.section_type === 'custom').sort((a, b) => a.sort_order - b.sort_order));
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 const dashboardUrl = computed(() => {
     const roles = page.props.auth?.user?.roles ?? [];
@@ -152,7 +155,7 @@ const steps = computed(() => [
             </div>
         </header>
 
-        <section id="home" class="relative isolate overflow-hidden bg-slate-50">
+        <section v-if="sectionEnabled('hero')" id="home" class="relative isolate overflow-hidden bg-slate-50">
             <div class="pointer-events-none absolute -left-40 top-10 -z-10 h-[30rem] w-[30rem] rounded-full bg-indigo-200/40 blur-3xl"></div>
             <div class="pointer-events-none absolute -right-40 bottom-0 -z-10 h-[28rem] w-[28rem] rounded-full bg-violet-200/40 blur-3xl"></div>
             <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[1.05fr_.95fr] lg:gap-16 lg:py-28">
@@ -209,7 +212,7 @@ const steps = computed(() => [
             </div>
         </section>
 
-        <section id="features" class="scroll-mt-24 py-16 sm:py-20">
+        <section v-if="sectionEnabled('features')" id="features" class="scroll-mt-24 py-16 sm:py-20">
             <div class="mx-auto max-w-7xl px-5 sm:px-8">
                 <div class="mx-auto mb-10 max-w-2xl text-center">
                     <p class="text-xs font-extrabold uppercase tracking-[.2em] text-brand-600">{{ copy.sectionEyebrow }}</p>
@@ -230,7 +233,7 @@ const steps = computed(() => [
             </div>
         </section>
 
-        <section class="border-y border-slate-200 bg-slate-50 py-16 sm:py-20">
+        <section v-if="sectionEnabled('steps')" class="border-y border-slate-200 bg-slate-50 py-16 sm:py-20">
             <div class="mx-auto max-w-7xl px-5 sm:px-8">
                 <div class="mb-9 text-center">
                     <p class="text-xs font-extrabold uppercase tracking-[.2em] text-brand-600">{{ copy.howEyebrow }}</p>
@@ -246,7 +249,7 @@ const steps = computed(() => [
             </div>
         </section>
 
-        <section class="px-5 py-16 sm:px-8 sm:py-20">
+        <section v-if="sectionEnabled('cta')" class="px-5 py-16 sm:px-8 sm:py-20">
             <div class="mx-auto max-w-5xl rounded-[2rem] bg-gradient-to-br from-indigo-700 via-indigo-700 to-violet-800 px-6 py-12 text-center text-white shadow-xl shadow-indigo-900/15 sm:px-12">
                 <p class="text-xs font-extrabold uppercase tracking-[.2em] text-indigo-200">ExamTestHub</p>
                 <h2 class="mx-auto mt-4 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">{{ copy.ctaTitle }}</h2>
@@ -255,6 +258,13 @@ const steps = computed(() => [
                     <a href="/register" class="rounded-xl bg-white px-6 py-3.5 text-sm font-extrabold text-indigo-700 shadow-sm transition hover:bg-indigo-50">{{ copy.createAccount }}</a>
                     <a href="/student/login" class="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-sm font-extrabold text-white transition hover:bg-white/20">{{ copy.signIn }}</a>
                 </div>
+            </div>
+        </section>
+
+        <section v-for="block in customSections" :key="block.id" class="border-y border-slate-100 bg-white px-5 py-14 sm:px-8">
+            <div class="mx-auto max-w-5xl text-center">
+                <h2 class="text-3xl font-black tracking-tight text-slate-950">{{ block.content?.[locale]?.title || block.title }}</h2>
+                <p v-if="block.content?.[locale]?.description" class="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600">{{ block.content[locale].description }}</p>
             </div>
         </section>
 
