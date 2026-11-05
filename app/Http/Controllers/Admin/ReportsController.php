@@ -88,11 +88,11 @@ class ReportsController extends Controller
             $trend[] = [
                 'date' => $day,
                 'label' => $cursor->format($days <= 30 ? 'd M' : 'd M'),
-                'attempts' => (int) ($attemptTrendRows->get($day)->attempts ?? 0),
-                'average_percentage' => round((float) ($attemptTrendRows->get($day)->average_percentage ?? 0), 1),
-                'revenue' => round((float) ($paymentTrendRows->get($day)->revenue ?? 0), 2),
-                'course_enrollments' => (int) ($courseTrendRows->get($day)->enrollments ?? 0),
-                'series_enrollments' => (int) ($seriesTrendRows->get($day)->enrollments ?? 0),
+                'attempts' => (int) data_get($attemptTrendRows->get($day), 'attempts', 0),
+                'average_percentage' => round((float) data_get($attemptTrendRows->get($day), 'average_percentage', 0), 1),
+                'revenue' => round((float) data_get($paymentTrendRows->get($day), 'revenue', 0), 2),
+                'course_enrollments' => (int) data_get($courseTrendRows->get($day), 'enrollments', 0),
+                'series_enrollments' => (int) data_get($seriesTrendRows->get($day), 'enrollments', 0),
             ];
             $cursor->addDay();
         }
