@@ -49,3 +49,9 @@ UI strings use translation keys; Hindi reviewed by fluent editor. Allow longer s
 
 ## Common states and acceptance
 Every async view defines loading, empty, validation error, network/server error with safe retry, permission denied, expired/unavailable and success. Checkout/exam retries reuse idempotency key and display existing state, not duplicates. Verify responsive registration, product states, lesson progress, exam save/timer behavior, payment/PDF states, permission-aware admin, Hindi wrapping and accessibility.
+
+
+## Admin navigation and responsive portal shell
+The admin sidebar is grouped into Dashboard, User Management, Academic Management, Exam Management, and Administration & Security. Only existing routes are linked, and links are filtered by the user's existing permissions; backend middleware remains authoritative. LMS Courses, PDF Materials, Reports, Notifications, Website Content and extended Settings are roadmap items and must not be linked as live pages until their backend and UI are implemented.
+
+The shared portal shell is mobile-first. Below 1024px, navigation opens as a slide-in drawer with a backdrop and closes after navigation. At laptop widths, a persistent 260px sidebar sits beside a min-width-zero content area. Header actions must fit a 320px viewport. Main content must not cause page-level horizontal overflow; wide tables scroll within their own wrappers. Cards and forms stack on mobile and expand at larger breakpoints. Use fluid spacing, wrapping labels, touch-sized controls, 16px mobile input text, and a Devanagari-capable font. Verify English and Hindi at 320, 390, 430, 768, 1366 and 1920px widths, including keyboard focus, 200% zoom, table overflow, validation and empty/error states. See [Admin Navigation and Responsive UI](ADMIN-NAVIGATION-RESPONSIVE.md) for the route inventory and QA checklist.

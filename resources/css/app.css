@@ -1,4 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @theme { --font-sans:"Inter","Noto Sans Devanagari",ui-sans-serif,system-ui,sans-serif; --color-brand-50:#eef2ff; --color-brand-100:#e0e7ff; --color-brand-500:#6366f1; --color-brand-600:#4f46e5; --color-brand-700:#4338ca; }
-:root{font-family:var(--font-sans);font-synthesis:none;text-rendering:optimizeLegibility}body{margin:0;min-width:320px;background:#f8fafc;color:#0f172a}button,a{-webkit-tap-highlight-color:transparent}
+:root{font-family:var(--font-sans);font-synthesis:none;text-rendering:optimizeLegibility}
+html{min-width:320px;overflow-x:hidden}
+body{margin:0;min-width:320px;max-width:100%;overflow-x:hidden;background:#f8fafc;color:#0f172a}
+button,a{-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
+img,video,svg,canvas{max-width:100%}
+.portal-main{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.portal-main :where(input,select,textarea){max-width:100%;min-width:0}
+.portal-main :where(pre,code){overflow-wrap:anywhere;white-space:pre-wrap}
+.portal-main :where(table){max-width:100%}
+.portal-main :where(th,td){overflow-wrap:anywhere}
+@media(max-width:639px){
+  .portal-main{padding-bottom:2rem}
+  .portal-main :where(button,a[role=button]){min-height:2.5rem}
+  .portal-main :where(input,select,textarea){font-size:16px}
+}
