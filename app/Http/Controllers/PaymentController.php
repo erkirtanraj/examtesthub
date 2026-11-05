@@ -186,7 +186,7 @@ class PaymentController extends Controller
 
         $this->markCaptured($payment, $data['razorpay_payment_id']);
 
-        return redirect()->route('student.payments.index')->with('success', 'Payment verified. Your test-series access is active.');
+        return redirect()->route('student.payments.index')->with('success', 'Payment verified. Your purchased access is active.');
     }
 
     private function markCaptured(Payment $payment, string $providerPaymentId): void
