@@ -14,10 +14,13 @@ The following modules are implemented in the current `main` branch:
 - Free previews, paid course access, private lesson resources, student enrollment, lesson completion and progress/resume.
 - Responsive portal navigation and admin/student payment history.
 - Standalone PDF study-material library with bilingual titles/descriptions, subject/course organization, private storage, filtering and enrollment-protected downloads.
+- Admin reports for student registrations, submitted exam attempts, average scores, captured Razorpay revenue and course/test-series enrollments, plus a student-owned performance dashboard.
 
 Phase 7 LMS Course Management was merged into `main` in November 2026. Its final GitHub Actions run passed the PHP feature-test job and the Vite production-build job. See [Phase 7 implementation notes](docs/PHASE-7-LMS-COURSE-MANAGEMENT.md) for scope and remaining manual verification.
 
 Phase 8 adds a standalone PDF materials library. Files are stored on the private `local` disk; materials assigned to a course require an active or completed enrollment in that course. See [Phase 8 implementation notes](docs/PHASE-8-PDF-STUDY-MATERIALS.md) for details and verification steps.
+
+Phase 9 adds permission-controlled admin reports and a private student performance dashboard. Metrics are derived from existing attempts, captured payment records and enrollments. See [Phase 9 implementation notes](docs/PHASE-9-REPORTS-ANALYTICS.md) for metric definitions and caveats.
 
 **Production readiness is not implied by a passing CI run.** Database migrations must be tested against the target database, responsive behavior must be checked in browsers/devices, and Razorpay must be verified with sandbox credentials and a configured webhook before production use. No production deployment or live payment acceptance is claimed here.
 
@@ -102,6 +105,7 @@ Use Razorpay test credentials and configure the signed webhook URL before testin
 - [Phase 6 — Payment Gateway](docs/PHASE6-PAYMENT-GATEWAY.md)
 - [Phase 7 — LMS Course Management](docs/PHASE-7-LMS-COURSE-MANAGEMENT.md)
 - [Phase 8 — PDF & Study Materials](docs/PHASE-8-PDF-STUDY-MATERIALS.md)
+- [Phase 9 — Reports & Analytics](docs/PHASE-9-REPORTS-ANALYTICS.md)
 - [Admin Navigation and Responsive UI](docs/ADMIN-NAVIGATION-RESPONSIVE.md)
 
 ## Capacity statement

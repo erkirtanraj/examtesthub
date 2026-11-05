@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../Layouts/PortalLayout.vue';
-import { Users, ShieldCheck, Brain, ClipboardList, Layers, Library, Activity, UserRound, ArrowUpRight } from 'lucide-vue-next';
+import { Users, ShieldCheck, Brain, ClipboardList, Layers, Library, Activity, UserRound, ArrowUpRight, BarChart3 } from 'lucide-vue-next';
 
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
@@ -14,6 +14,7 @@ const cards = computed(() => hi.value ? [
     { label: 'टेस्ट सीरीज़', detail: 'फ्री और पेड टेस्ट पैकेज तथा नामांकन प्रबंधित करें', href: '/admin/test-series', permission: 'tests.manage', icon: Layers },
     { label: 'LMS कोर्स', detail: 'कोर्स, अध्याय, पाठ और नामांकन प्रबंधित करें', href: '/admin/courses', permission: 'courses.view', icon: Library },
     { label: 'विषय और टॉपिक', detail: 'प्रश्न बैंक की संरचना व्यवस्थित करें', href: '/admin/subjects', permission: 'questions.manage', icon: Library },
+    { label: 'रिपोर्ट और एनालिटिक्स', detail: 'परीक्षा प्रदर्शन, नामांकन और राजस्व देखें', href: '/admin/reports', permission: 'reports.view', icon: BarChart3 },
     { label: 'गतिविधि लॉग', detail: 'प्रशासनिक बदलावों का रिकॉर्ड', href: '/admin/activity', permission: 'audit.view', icon: Activity },
     { label: 'मेरी प्रोफ़ाइल', detail: 'प्रोफ़ाइल और पासवर्ड सुरक्षा', href: '/admin/profile', permission: 'profile.manage', icon: UserRound },
 ] : [
@@ -24,6 +25,7 @@ const cards = computed(() => hi.value ? [
     { label: 'Test series', detail: 'Manage free and paid packages and student enrollments', href: '/admin/test-series', permission: 'tests.manage', icon: Layers },
     { label: 'LMS courses', detail: 'Build courses, chapters, lessons and enrollments', href: '/admin/courses', permission: 'courses.view', icon: Library },
     { label: 'Subjects & topics', detail: 'Organize the question bank taxonomy', href: '/admin/subjects', permission: 'questions.manage', icon: Library },
+    { label: 'Reports & analytics', detail: 'Review exam performance, enrollments and verified revenue', href: '/admin/reports', permission: 'reports.view', icon: BarChart3 },
     { label: 'Audit activity', detail: 'Administrative change history', href: '/admin/activity', permission: 'audit.view', icon: Activity },
     { label: 'My profile', detail: 'Profile and password security', href: '/admin/profile', permission: 'profile.manage', icon: UserRound },
 ]);
