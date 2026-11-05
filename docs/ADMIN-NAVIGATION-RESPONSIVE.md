@@ -1,6 +1,6 @@
 # Admin Navigation and Responsive UI
 
-Status: navigation shell implemented on `feature/admin-sidebar-responsive-ui`. Feature groups marked "planned" are not live routes and must not be presented as completed functionality.
+Status: navigation shell implemented on `feature/admin-sidebar-responsive-ui`. Planned groups are not live routes and must not be presented as completed functionality.
 
 ## Admin sidebar
 
@@ -17,6 +17,7 @@ The navigation is grouped by existing route areas and filtered using the permiss
 | Exam Management | All Exams | `/admin/exams` | `tests.manage` |
 | Exam Management | Test Series | `/admin/test-series` | `tests.manage` |
 | Exam Management | Payments | `/admin/payments` | `tests.manage` |
+| LMS Course Management | All Courses | `/admin/courses` | `courses.view` |
 | Administration & Security | Audit Activity | `/admin/activity` | `audit.view` |
 | Administration & Security | My Profile | `/admin/profile` | `profile.manage` |
 
@@ -34,7 +35,7 @@ These modules should appear in the navigation only after their routes, authoriza
 - Extended System Settings: localization, payment provider configuration status, storage, queues, health and maintenance.
 - Extended Security: session review and security events.
 
-Do not duplicate existing question, exam, test-series, user, payment or audit workflows. Course enrollments must remain distinct from test-series enrollments. Course payments should reuse the existing verified Razorpay infrastructure.
+Do not duplicate existing question, exam, test-series, user, payment or audit workflows. Course enrollments remain distinct from test-series enrollments. Course payments reuse the existing verified Razorpay infrastructure.
 
 ## Responsive behavior
 
