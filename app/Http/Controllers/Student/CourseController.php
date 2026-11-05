@@ -82,6 +82,17 @@ class CourseController extends Controller
         abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->where('status', 'published')->exists(), 404);
         $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->whereIn('status', ['active', 'completed'])->first();
         abort_unless($enrollment || $lesson->is_preview, 403);
+        if ($lesson->type === 'video') {
+            $host = strtolower((string) parse_url($lesson->video_url, PHP_URL_HOST));
+            $path = trim((string) parse_url($lesson->video_url, PHP_URL_PATH), '/');
+            parse_str((string) parse_url($lesson->video_url, PHP_URL_QUERY), $query);
+            $videoId = $host === 'youtu.be' ? explode('/', $path)[0] : ($query['v'] ?? (preg_match('~(?:embed|shorts)/([^/?]+)~', $path, $matches) ? $matches[1] : null));
+            if (in_array($host, ['youtube.com', 'www.youtube.com', 'youtu.be'], true) && $videoId) {
+                $lesson->setAttribute('embed_url', 'https://www.youtube-nocookie.com/embed/'.$videoId);
+            } elseif (str_contains($host, 'vimeo.com') && preg_match('~([0-9]+)$~', $path, $matches)) {
+                $lesson->setAttribute('embed_url', 'https://player.vimeo.com/video/'.$matches[1]);
+            }
+        }
         $lesson->load('resources');
         $progress = $enrollment ? CourseLessonProgress::firstOrCreate(
             ['course_enrollment_id' => $enrollment->id, 'lesson_id' => $lesson->id],
