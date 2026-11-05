@@ -6,7 +6,7 @@ import { BookOpen, ClipboardCheck, FileText, Search, GraduationCap, LogOut, Layo
 const props = defineProps({ type: String, items: Object, search: String });
 const page = usePage();
 const query = ref(props.search || '');
-const user = computed(() => page.props.auth?.user || null);
+const user = computed(() => page.props.auth?.user || null);\nconst dashboardHref = computed(() => (user.value?.roles || []).includes('student') ? '/student/dashboard' : '/admin/dashboard');\nconst actionHref = computed(() => !user.value ? '/student/login' : (props.type === 'courses' ? '/student/courses' : props.type === 'materials' ? '/student/materials' : '/student/test-series'));
 const config = computed(() => ({
     courses: { title: 'Courses', subtitle: 'Explore structured courses for your learning goals.', singular: 'course', icon: BookOpen, empty: 'No courses are published yet.' },
     materials: { title: 'Study Materials', subtitle: 'Browse notes and PDF resources by subject and language.', singular: 'material', icon: FileText, empty: 'No study materials are published yet.' },
@@ -41,7 +41,7 @@ function formatSize(bytes) {
             </nav>
             <div class="flex items-center gap-2">
                 <template v-if="user">
-                    <a href="/student/dashboard" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-indigo-700 hover:bg-indigo-50"><LayoutDashboard :size="16"/> Dashboard</a>
+                    <a :href="dashboardHref" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-indigo-700 hover:bg-indigo-50"><LayoutDashboard :size="16"/> Dashboard</a>
                     <button @click="logout" class="rounded-xl bg-slate-900 px-3 py-2 text-sm font-bold text-white hover:bg-slate-700">Logout</button>
                 </template>
                 <template v-else>
@@ -92,7 +92,7 @@ function formatSize(bytes) {
                     <p class="mt-4 text-xs text-slate-500">{{ item.exams_count }} exams included</p>
                 </template>
                 <div class="mt-5 border-t border-slate-100 pt-4">
-                    <a :href="loginUrl()" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">
+                    <a :href="actionHref" class="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">
                         {{ type === 'materials' ? 'Login to access' : type === 'courses' ? 'Login to enroll' : 'Login to enroll / purchase' }}
                     </a>
                 </div>
