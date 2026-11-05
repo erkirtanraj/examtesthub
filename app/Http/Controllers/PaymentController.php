@@ -257,7 +257,7 @@ class PaymentController extends Controller
                 && ($entity['currency'] ?? null) === $payment->currency) {
                 if ($payment->status !== 'captured' && $payment->status !== 'refunded') {
                     $enrollment = $payment->course_enrollment_id
-                        ? \\App\\Models\\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->firstOrFail()
+                        ? \App\Models\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->firstOrFail()
                         : TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
                     $payment->update([
                         'provider_payment_id' => $paymentId,
