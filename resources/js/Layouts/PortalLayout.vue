@@ -38,6 +38,9 @@ function switchLanguage(next) { router.get('/language/' + next); }
                         <a v-if="user?.permissions?.includes('users.view')" href="/admin/users" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'उपयोगकर्ता' : 'Users' }}</a>
                         <a v-if="user?.permissions?.includes('roles.manage')" href="/admin/roles" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'भूमिकाएँ' : 'Roles' }}</a>
                         <a v-if="user?.permissions?.includes('permissions.manage')" href="/admin/permissions" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'अनुमतियाँ' : 'Permissions' }}</a>
+                        <a v-if="user?.permissions?.includes('questions.manage')" href="/admin/questions" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'प्रश्न बैंक' : 'Question bank' }}</a>
+                        <a v-if="user?.permissions?.includes('questions.manage')" href="/admin/subjects" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'विषय और टॉपिक' : 'Subjects & topics' }}</a>
+                        <a v-if="user?.permissions?.includes('tests.manage')" href="/admin/exams" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'परीक्षा प्रबंधन' : 'Exam management' }}</a>
                         <a v-if="user?.permissions?.includes('audit.view')" href="/admin/activity" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'गतिविधि लॉग' : 'Audit activity' }}</a>
                         <a v-if="user?.permissions?.includes('profile.manage')" href="/admin/profile" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'मेरी प्रोफ़ाइल' : 'My profile' }}</a>
                     </template>
