@@ -1,5 +1,7 @@
 <?php
 use App\Http\Controllers\Admin\AdminUserManagementController;
+use App\Http\Controllers\Admin\CourseManagementController;
+use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Admin\ExamManagementController;
 use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\TestSeriesController as AdminTestSeriesController;
