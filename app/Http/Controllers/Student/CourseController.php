@@ -128,7 +128,7 @@ class CourseController extends Controller
 
     public function complete(Request $request, Course $course, CourseLesson $lesson): RedirectResponse
     {
-        abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->where('status', 'published')->exists(), 404);
+        abort_unless($lesson->status === 'published' && $lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
         $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->where('status', 'active')->firstOrFail();
         DB::transaction(function () use ($enrollment, $lesson) {
             CourseLessonProgress::updateOrCreate(
