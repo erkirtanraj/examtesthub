@@ -1,6 +1,6 @@
 # Phase 7 — LMS Course Management
 
-Status: implemented on `feature/phase-7-lms-course-management`; automated PHP tests and frontend production build have passed. Manual responsive QA and Razorpay sandbox verification remain before production deployment.
+Status: merged into `main` on 2026-11-05 (merge commit `f9e45a640f05af6fb85b3c18818c618aad9cc5de`). The final Phase 7 GitHub Actions run passed both the PHP feature-test job and the frontend production-build job. Manual responsive QA, target-database migration verification and Razorpay sandbox testing remain before production deployment.
 
 ## Scope delivered
 
@@ -48,11 +48,16 @@ Student:
 - `/student/courses/{course:slug}`
 - `/student/courses/{course:slug}/lessons/{lesson}`
 
+## Verification completed
+
+- GitHub Actions run [42072046409](https://github.com/erkirtanraj/examtesthub/actions/runs/42072046409): PHP feature tests passed.
+- The same CI run completed the Vite production build successfully.
+
 ## Verification still required
 
-- Run full PHP feature suite and Vite production build in CI.
-- Verify migration 009/010 on MySQL and SQLite test database.
-- Run manual responsive QA at the existing documented viewport matrix.
-- Test Razorpay in sandbox with valid credentials and configured webhook secret before production use.
+- Apply migrations 009/010 to a backed-up local or staging database and verify the application against that database.
+- Run manual responsive QA at the viewport matrix in [Admin Navigation and Responsive UI](ADMIN-NAVIGATION-RESPONSIVE.md), including English and Hindi.
+- Test free enrollment, preview/locked lessons, protected file downloads and progress tracking in a browser.
+- Test Razorpay in sandbox with valid credentials and a configured webhook secret before production use.
 
-No production deployment or live Razorpay transaction is claimed by this branch.
+No production deployment or live Razorpay transaction has been performed or verified as part of this phase.
