@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\CourseEnrollment;
-use App\\Models\\ExamAttempt;
-use App\\Models\\Payment;
-use App\\Models\\TestSeriesEnrollment;
-use App\\Models\\User;
-use Carbon\\Carbon;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Inertia\\Inertia;
-use Inertia\\Response;
+use App\Http\Controllers\Controller;
+use App\Models\CourseEnrollment;
+use App\Models\ExamAttempt;
+use App\Models\Payment;
+use App\Models\TestSeriesEnrollment;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ReportsController extends Controller
 {
@@ -32,7 +32,7 @@ class ReportsController extends Controller
 
         $attemptSummary = (clone $submittedAttempts)
             ->selectRaw('COUNT(*) as attempts_count')
-            ->selectRaw('AVG(CASE WHEN total_marks > 0 THEN (score / total_marks) * 100 ELSE NULL END) as average_percentage')
+            ->selectRaw('AVG(CASE WHEN total_marks > 0 THEN (score * 100.0 / total_marks) ELSE NULL END) as average_percentage')
             ->first();
 
         $capturedPayments = Payment::query()
@@ -51,7 +51,7 @@ class ReportsController extends Controller
             ->whereBetween('enrolled_at', [$from, $to])->count();
 
         $attemptTrendRows = (clone $submittedAttempts)
-            ->selectRaw('DATE(submitted_at) as day, COUNT(*) as attempts, AVG(CASE WHEN total_marks > 0 THEN (score / total_marks) * 100 ELSE NULL END) as average_percentage')
+            ->selectRaw('DATE(submitted_at) as day, COUNT(*) as attempts, AVG(CASE WHEN total_marks > 0 THEN (score * 100.0 / total_marks) ELSE NULL END) as average_percentage')
             ->groupBy('day')
             ->orderBy('day')
             ->get()
@@ -104,7 +104,7 @@ class ReportsController extends Controller
             ->select('exams.id', 'exams.title')
             ->selectRaw('COUNT(*) as attempts_count')
             ->selectRaw('COUNT(DISTINCT exam_attempts.user_id) as students_count')
-            ->selectRaw('AVG(CASE WHEN exam_attempts.total_marks > 0 THEN (exam_attempts.score / exam_attempts.total_marks) * 100 ELSE NULL END) as average_percentage')
+            ->selectRaw('AVG(CASE WHEN exam_attempts.total_marks > 0 THEN (exam_attempts.score * 100.0 / exam_attempts.total_marks) ELSE NULL END) as average_percentage')
             ->groupBy('exams.id', 'exams.title')
             ->orderByDesc('attempts_count')
             ->limit(8)
