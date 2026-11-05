@@ -48,6 +48,7 @@ class TestSeriesController extends Controller
     public function enroll(Request $request, TestSeries $testSeries): RedirectResponse
     {
         abort_unless($testSeries->isAvailable(), 404);
+        abort_if($testSeries->access_type === 'paid', 409, 'Paid test series must use the secure checkout flow.');
         DB::transaction(function () use ($request, $testSeries) {
             $series = TestSeries::whereKey($testSeries->id)->lockForUpdate()->firstOrFail();
             abort_unless($series->isAvailable(), 404);
