@@ -82,6 +82,12 @@ function addCustomHtml() {
     }, { preserveScroll: true });
 }
 
+function deleteBlock(block) {
+    if (confirm(hi.value ? 'क्या आप यह सेक्शन हटाना चाहते हैं?' : 'Delete this homepage section?')) {
+        router.delete('/admin/settings/website-content/' + block.id, { preserveScroll: true });
+    }
+}
+
 function resetLayout() {
     loadBlocks();
 }
@@ -157,7 +163,8 @@ function resetLayout() {
                     </details>
 
                     <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                        <span class="text-xs text-slate-500">Section ID: {{ block.key }}</span>
+                        <button type="button" @click="deleteBlock(block)" class="rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50">{{ hi ? 'हटाएँ' : 'Delete block' }}</button>
+                        <span class="mr-auto text-xs text-slate-500">Section ID: {{ block.key }}</span>
                         <button type="button" @click="saveBlock(block)" class="rounded-lg border border-emerald-800 px-4 py-2 text-xs font-bold text-emerald-950 hover:bg-emerald-50">{{ hi ? 'सेक्शन सामग्री सेव करें' : 'Save section content' }}</button>
                     </div>
                 </div>
