@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->text('description')->nullable();
             $table->text('description_hi')->nullable();
             $table->foreignId('subject_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('course_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('course_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('language', 8)->default('both')->index();
             $table->string('status', 20)->default('draft')->index();
             $table->string('file_path', 500);
