@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight, BookOpen, ClipboardCheck, FileText, GraduationCap,
     TrendingUp, ShieldCheck, Menu, X, Sparkles, CheckCircle2,
@@ -7,6 +8,13 @@ import {
 
 const locale = ref('en');
 const mobileMenuOpen = ref(false);
+const page = usePage();
+const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
+const dashboardUrl = computed(() => {
+    const roles = page.props.auth?.user?.roles ?? [];
+    return roles.includes('student') ? '/student/dashboard' : '/admin/dashboard';
+});
+const logout = () => router.post('/logout');
 
 const copy = computed(() => locale.value === 'hi' ? {
     navHome: 'होम', navCourses: 'कोर्स', navTests: 'टेस्ट सीरीज़', navMaterials: 'अध्ययन सामग्री',
@@ -95,8 +103,14 @@ const steps = computed(() => [
                         <button type="button" @click="locale = 'en'" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition" :class="locale === 'en' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'">EN</button>
                         <button type="button" @click="locale = 'hi'" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition" :class="locale === 'hi' ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-500'">हिंदी</button>
                     </div>
-                    <a href="/student/login" class="rounded-xl px-4 py-2.5 text-sm font-bold text-brand-700 transition hover:bg-indigo-50">{{ copy.studentLogin }}</a>
-                    <a href="/register" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-brand-700">{{ copy.register }}</a>
+                    <template v-if="!isAuthenticated">
+                        <a href="/student/login" class="rounded-xl px-4 py-2.5 text-sm font-bold text-brand-700 transition hover:bg-indigo-50">{{ copy.studentLogin }}</a>
+                        <a href="/register" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:bg-brand-700">{{ copy.register }}</a>
+                    </template>
+                    <template v-else>
+                        <a :href="dashboardUrl" class="rounded-xl px-4 py-2.5 text-sm font-bold text-brand-700 transition hover:bg-indigo-50">Dashboard</a>
+                        <button type="button" @click="logout" class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-700">Logout</button>
+                    </template>
                 </div>
 
                 <div class="flex items-center gap-2 lg:hidden">
@@ -113,8 +127,14 @@ const steps = computed(() => [
                     <a @click="mobileMenuOpen = false" href="#features" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navCourses }} & {{ copy.navTests }}</a>
                     <a @click="mobileMenuOpen = false" href="#features" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navMaterials }}</a>
                     <div class="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
-                        <a href="/student/login" class="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-bold text-slate-700">{{ copy.studentLogin }}</a>
-                        <a href="/register" class="col-span-2 rounded-xl bg-brand-600 px-3 py-2.5 text-center text-sm font-bold text-white">{{ copy.register }}</a>
+                        <template v-if="!isAuthenticated">
+                            <a href="/student/login" class="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-bold text-slate-700">{{ copy.studentLogin }}</a>
+                            <a href="/register" class="rounded-xl bg-brand-600 px-3 py-2.5 text-center text-sm font-bold text-white">{{ copy.register }}</a>
+                        </template>
+                        <template v-else>
+                            <a :href="dashboardUrl" class="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-bold text-slate-700">Dashboard</a>
+                            <button type="button" @click="logout" class="rounded-xl bg-slate-900 px-3 py-2.5 text-center text-sm font-bold text-white">Logout</button>
+                        </template>
                     </div>
                 </nav>
             </div>
