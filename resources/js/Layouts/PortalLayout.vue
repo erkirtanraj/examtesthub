@@ -74,6 +74,7 @@ const adminGroups = computed(() => [
 const studentItems = computed(() => [
     { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
+    { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
     { label: isHindi.value ? 'टेस्ट सीरीज़' : 'Test Series', href: '/student/test-series', icon: 'series' },
     { label: isHindi.value ? 'मेरी टेस्ट सीरीज़' : 'My Test Series', href: '/student/my-test-series', icon: 'learning' },
     { label: isHindi.value ? 'उपलब्ध परीक्षाएँ' : 'Available Exams', href: '/student/exams', icon: 'exams' },
