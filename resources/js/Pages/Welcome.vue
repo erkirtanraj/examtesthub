@@ -12,7 +12,7 @@ const page = usePage();
 const homepageSections = computed(() => page.props.homepageSections || []);
 const sectionEnabled = key => homepageSections.value.some(section => section.key === ('section.' + key) && section.is_published);
 const sectionContent = key => { const section = homepageSections.value.find(item => item.key === ('section.' + key)); return section?.content?.[locale.value] || section?.content?.en || {}; };
-const customSections = computed(() => homepageSections.value.filter(section => section.content?.section_type === 'custom').sort((a, b) => a.sort_order - b.sort_order));
+const customSections = computed(() => homepageSections.value.filter(section => ['custom', 'html'].includes(section.content?.section_type)).sort((a, b) => a.sort_order - b.sort_order));
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 const dashboardUrl = computed(() => {
     const roles = page.props.auth?.user?.roles ?? [];
@@ -264,8 +264,9 @@ const steps = computed(() => [
 
         <section v-for="block in customSections" :key="block.id" class="border-y border-slate-100 bg-white px-5 py-14 sm:px-8">
             <div class="mx-auto max-w-5xl text-center">
-                <h2 class="text-3xl font-black tracking-tight text-slate-950">{{ block.content?.[locale]?.title || block.title }}</h2>
-                <p v-if="block.content?.[locale]?.description" class="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600">{{ block.content[locale].description }}</p>
+                <h2 v-if="block.content?.[locale]?.title || block.title" class="text-3xl font-black tracking-tight text-slate-950">{{ block.content?.[locale]?.title || block.title }}</h2>
+                <div v-if="block.content?.[locale]?.html" class="prose mx-auto mt-4 max-w-3xl text-left" v-html="block.content[locale].html"></div>
+                <p v-else-if="block.content?.[locale]?.description" class="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600">{{ block.content[locale].description }}</p>
             </div>
         </section>
 
