@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminUserManagementController;
+use App\Http\Controllers\Admin\ExamManagementController;
+use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Auth\PortalAuthenticationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -56,6 +58,26 @@ Route::middleware(['auth', 'active', 'role:super-admin|admin|content-manager|exa
         Route::get('/profile', [AdminUserManagementController::class, 'profile'])->middleware('permission:profile.manage')->name('profile.index');
         Route::put('/profile', [AdminUserManagementController::class, 'updateProfile'])->middleware('permission:profile.manage')->name('profile.update');
         Route::put('/profile/password', [AdminUserManagementController::class, 'updatePassword'])->middleware('permission:profile.manage')->name('profile.password');
+
+        Route::middleware('permission:questions.manage')->group(function () {
+            Route::get('/questions', [QuestionBankController::class, 'index'])->name('questions.index');
+            Route::get('/questions/export', [QuestionBankController::class, 'export'])->name('questions.export');
+            Route::post('/questions/import', [QuestionBankController::class, 'import'])->middleware('throttle:10,1')->name('questions.import');
+            Route::post('/questions', [QuestionBankController::class, 'store'])->name('questions.store');
+            Route::put('/questions/{question}', [QuestionBankController::class, 'update'])->name('questions.update');
+            Route::delete('/questions/{question}', [QuestionBankController::class, 'destroy'])->name('questions.destroy');
+            Route::get('/subjects', [QuestionBankController::class, 'subjects'])->name('subjects.index');
+            Route::post('/subjects', [QuestionBankController::class, 'storeSubject'])->name('subjects.store');
+            Route::put('/subjects/{subject}', [QuestionBankController::class, 'updateSubject'])->name('subjects.update');
+            Route::post('/subjects/{subject}/topics', [QuestionBankController::class, 'storeTopic'])->name('topics.store');
+        });
+
+        Route::middleware('permission:tests.manage')->group(function () {
+            Route::get('/exams', [ExamManagementController::class, 'index'])->name('exams.index');
+            Route::post('/exams', [ExamManagementController::class, 'store'])->name('exams.store');
+            Route::put('/exams/{exam}', [ExamManagementController::class, 'update'])->name('exams.update');
+            Route::patch('/exams/{exam}/status', [ExamManagementController::class, 'updateStatus'])->name('exams.status');
+        });
     });
 
 Route::middleware(['auth', 'active', 'role:student'])->prefix('student')->name('student.')->group(function () {
