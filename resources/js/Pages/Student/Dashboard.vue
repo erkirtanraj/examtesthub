@@ -60,7 +60,7 @@ const toneClasses = {
             </div>
         </section>
 
-        <section class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+        <section v-if="page.props.auth?.user?.permissions?.includes('profile.manage')" class="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
             <div class="flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><UserRound :size="19" /></span><span><strong class="block text-sm text-slate-900">{{ hi ? 'अपना खाता अपडेट रखें' : 'Keep your account up to date' }}</strong><span class="mt-0.5 block text-xs text-slate-500">{{ hi ? 'नाम, ईमेल और पासवर्ड सेटिंग्स देखें।' : 'Review your personal details and password settings.' }}</span></span></div>
             <a href="/student/profile" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700">{{ hi ? 'प्रोफ़ाइल खोलें' : 'Open profile' }}<ArrowUpRight :size="15" /></a>
         </section>
