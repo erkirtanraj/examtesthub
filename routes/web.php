@@ -1,10 +1,13 @@
 <?php
+use App\Models\StudentProfileSetting;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\CourseManagementController;
 use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\Admin\StudentProfileSettingsController;
 use App\Http\Controllers\Admin\StudyMaterialController as AdminStudyMaterialController;
 use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\PerformanceController;
+use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\Student\StudyMaterialController as StudentStudyMaterialController;
 use App\Http\Controllers\Admin\ExamManagementController;
 use App\Http\Controllers\Admin\QuestionBankController;
@@ -16,7 +19,7 @@ use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesContro
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');
-Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);if(request()->user())request()->user()->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
+Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);$user=request()->user();if($user&&(!$user->hasRole('student')||StudentProfileSetting::current()->allow_language_edit))$user->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
 Route::middleware('guest')->group(function(){
  Route::get('/admin/login',[PortalAuthenticationController::class,'adminLoginPage'])->name('admin.login');
  Route::post('/admin/login',[PortalAuthenticationController::class,'adminLogin'])->middleware('throttle:5,1')->name('admin.login.store');
@@ -30,6 +33,8 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  Route::get('/',fn()=>redirect()->route('admin.dashboard'));
  Route::get('/dashboard',fn()=>Inertia::render('Admin/Dashboard'))->name('dashboard');
  Route::get('/reports',[ReportsController::class,'index'])->middleware('permission:reports.view')->name('reports.index');
+ Route::get('/settings/student-profile',[StudentProfileSettingsController::class,'index'])->middleware('permission:settings.manage')->name('settings.student-profile');
+ Route::put('/settings/student-profile',[StudentProfileSettingsController::class,'update'])->middleware('permission:settings.manage')->name('settings.student-profile.update');
  Route::middleware('permission:users.view')->group(function(){
   Route::get('/users',[AdminUserManagementController::class,'users'])->name('users.index');
   Route::get('/users/export',[AdminUserManagementController::class,'exportUsers'])->middleware('permission:users.export')->name('users.export');
@@ -126,6 +131,11 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
  Route::get('/payments/{payment}/checkout',[PaymentController::class,'checkout'])->name('payments.checkout');
  Route::post('/payments/{payment}/verify',[PaymentController::class,'verify'])->middleware('throttle:10,1')->name('payments.verify');
  Route::get('/dashboard',fn()=>Inertia::render('Student/Dashboard'))->name('dashboard');
+ Route::middleware('permission:profile.manage')->group(function(){
+  Route::get('/profile',[StudentProfileController::class,'index'])->name('profile.index');
+  Route::put('/profile',[StudentProfileController::class,'update'])->name('profile.update');
+  Route::put('/profile/password',[StudentProfileController::class,'updatePassword'])->name('profile.password');
+ });
  Route::get('/performance',[PerformanceController::class,'index'])->middleware('permission:results.view-own')->name('performance.index');
  Route::get('/test-series',[StudentTestSeriesController::class,'index'])->name('test-series.index');
  Route::get('/my-test-series',[StudentTestSeriesController::class,'mySeries'])->name('test-series.mine');
