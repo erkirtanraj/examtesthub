@@ -216,6 +216,7 @@ class PaymentController extends Controller
     public function verify(Request $request, Payment $payment): RedirectResponse
     {
         abort_unless($payment->user_id === $request->user()->id, 404);
+        abort_unless($payment->status === 'pending', 409, 'This payment is no longer payable.');
         $data = $request->validate([
             'razorpay_order_id' => ['required', 'string', 'max:100'],
             'razorpay_payment_id' => ['required', 'string', 'max:100'],
