@@ -16,7 +16,7 @@ const dashboardUrl = computed(() => {
 });
 const logout = () => router.post('/logout');
 
-const copy = computed(() => locale.value === 'hi' ? {
+const copy = computed(() => {\n    const defaults = locale.value === 'hi' ? {
     navHome: 'होम', navCourses: 'कोर्स', navTests: 'टेस्ट सीरीज़', navMaterials: 'अध्ययन सामग्री',
     studentLogin: 'लॉगिन', adminLogin: 'एडमिन', register: 'रजिस्टर करें',
     eyebrow: 'आपकी सफलता की तैयारी यहीं से शुरू होती है',
