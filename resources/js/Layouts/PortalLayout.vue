@@ -4,7 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import {
     Activity, BookOpen, Brain, ChevronDown, ClipboardList, CreditCard,
     GraduationCap, LayoutDashboard, Library, Menu, ShieldCheck, Users,
-    X, UserRound, Settings, FileText, BarChart3, Layers,
+    X, UserRound, Settings, FileText, BarChart3, Layers, Mail, LogOut, ChevronRight,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -19,7 +19,12 @@ const user = computed(() => page.props.auth?.user || null);
 const isHindi = computed(() => locale.value === 'hi');
 const isAdmin = computed(() => props.portal === 'admin');
 const mobileOpen = ref(false);
+const profileMenuOpen = ref(false);
 const expandedGroups = ref(['Dashboard']);
+const profileHref = computed(() => isAdmin.value ? '/admin/profile' : '/student/profile');
+const profileLabel = computed(() => isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile');
+const accountLabel = computed(() => isHindi.value ? 'खाता' : 'Account');
+const userInitials = computed(() => (user.value?.name || 'U').trim().split(/\\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join(''));
 
 const iconMap = {
     dashboard: LayoutDashboard, users: Users, academic: Library, questions: Brain,
@@ -116,30 +121,55 @@ function toggleGroup(key) {
         : [...expandedGroups.value, key];
 }
 function closeMobile() { mobileOpen.value = false; }
-function logout() { router.post('/logout'); }
+function closeProfileMenu() { profileMenuOpen.value = false; }
+function logout() { closeProfileMenu(); router.post('/logout'); }
 function switchLanguage(next) { router.get('/language/' + next); }
-watch(() => page.url, closeMobile);
+watch(() => page.url, () => { closeMobile(); closeProfileMenu(); });
 </script>
 
 <template>
     <div class="min-h-screen bg-slate-50">
-        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-            <div class="mx-auto flex min-h-16 max-w-[1600px] items-center justify-between gap-3 px-3 py-3 sm:px-5 lg:px-6">
-                <div class="flex min-w-0 items-center gap-3">
-                    <button type="button" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 lg:hidden" @click="mobileOpen = !mobileOpen" :aria-label="mobileOpen ? 'Close navigation' : 'Open navigation'">
-                        <X v-if="mobileOpen" :size="21" />
-                        <Menu v-else :size="21" />
+        <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl">
+            <div class="mx-auto flex min-h-[76px] max-w-[1600px] items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5 lg:px-6">
+                <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                    <button type="button" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 lg:hidden" @click="mobileOpen = !mobileOpen" :aria-label="mobileOpen ? 'Close navigation' : 'Open navigation'" :aria-expanded="mobileOpen">
+                        <X v-if="mobileOpen" :size="20" />
+                        <Menu v-else :size="20" />
                     </button>
-                    <a href="/" class="truncate text-lg font-extrabold tracking-tight text-slate-900 sm:text-xl">ExamTest<span class="text-indigo-600">Hub</span></a>
-                    <span class="hidden rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 sm:inline-flex">{{ isAdmin ? 'ADMIN' : 'STUDENT' }}</span>
+                    <a href="/" class="group flex min-w-0 items-center gap-2.5" aria-label="ExamTestHub home">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-sm font-black tracking-tight text-white shadow-md shadow-indigo-600/20 sm:h-11 sm:w-11">ET</span>
+                        <span class="min-w-0 leading-tight"><span class="block truncate text-base font-extrabold tracking-tight text-slate-950 sm:text-lg">ExamTest<span class="text-indigo-600">Hub</span></span><span class="hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:block">Learn · Practice · Succeed</span></span>
+                    </a>
+                    <span class="hidden rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-indigo-700 sm:inline-flex">{{ isAdmin ? (isHindi ? 'एडमिन पोर्टल' : 'ADMIN PORTAL') : (isHindi ? 'स्टूडेंट पोर्टल' : 'STUDENT PORTAL') }}</span>
                 </div>
-                <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
-                    <a v-if="user?.permissions?.includes('profile.manage')" :href="isAdmin ? '/admin/profile' : '/student/profile'" class="inline-flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 px-2.5 py-2 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700" :aria-label="isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile'"><UserRound :size="17" class="shrink-0" /><span class="hidden max-w-40 truncate md:inline">{{ user?.name }}</span><span class="sr-only">{{ isHindi ? 'प्रोफ़ाइल खोलें' : 'Open profile' }}</span></a>
-                    <div class="flex items-center rounded-xl border border-slate-200 p-0.5">
-                        <button type="button" @click="switchLanguage('en')" class="rounded-lg px-2 py-1.5 text-xs font-semibold sm:text-sm" :class="!isHindi ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'">EN</button>
-                        <button type="button" @click="switchLanguage('hi')" class="rounded-lg px-2 py-1.5 text-xs font-semibold sm:text-sm" :class="isHindi ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500'">हिंदी</button>
+
+                <div class="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+                    <div class="hidden items-center rounded-xl border border-slate-200 bg-slate-50/80 p-1 sm:flex">
+                        <button type="button" @click="switchLanguage('en')" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition sm:px-3" :class="!isHindi ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'">EN</button>
+                        <button type="button" @click="switchLanguage('hi')" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition sm:px-3" :class="isHindi ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'">हिंदी</button>
                     </div>
-                    <button type="button" @click="logout" class="rounded-xl border border-slate-200 px-2.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 sm:px-3 sm:text-sm">{{ isHindi ? 'लॉग आउट' : 'Log out' }}</button>
+                    <a v-if="hasPermission('profile.manage')" :href="profileHref" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 sm:h-11 sm:w-11" :aria-label="profileLabel" :title="profileLabel"><UserRound :size="19" /></a>
+                    <div v-if="user" class="relative">
+                        <button type="button" class="flex max-w-[ min(48vw, 240px) ] items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-2 shadow-sm transition hover:border-indigo-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 sm:gap-2.5 sm:pl-2 sm:pr-3" @click="profileMenuOpen = !profileMenuOpen" :aria-expanded="profileMenuOpen" aria-haspopup="menu">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white sm:h-9 sm:w-9">{{ userInitials }}</span>
+                            <span class="hidden min-w-0 text-left sm:block"><span class="block max-w-28 truncate text-xs font-bold text-slate-800 sm:max-w-36 sm:text-sm">{{ user.name }}</span><span class="block text-[10px] font-medium text-slate-400">{{ accountLabel }}</span></span>
+                            <ChevronDown :size="15" class="shrink-0 text-slate-400 transition-transform" :class="profileMenuOpen ? 'rotate-180' : ''" />
+                        </button>
+                        <div v-if="profileMenuOpen" class="absolute right-0 top-[calc(100%+10px)] z-[60] w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10" role="menu">
+                            <div class="border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+                                <p class="truncate text-sm font-bold text-slate-900">{{ user.name }}</p>
+                                <p class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-slate-500"><Mail :size="12" class="shrink-0" />{{ user.email }}</p>
+                            </div>
+                            <div class="p-2">
+                                <a v-if="hasPermission('profile.manage')" :href="profileHref" role="menuitem" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700" @click="closeProfileMenu"><UserRound :size="17" />{{ profileLabel }}<ChevronRight :size="15" class="ml-auto text-slate-400" /></a>
+                                <button type="button" role="menuitem" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-rose-50 hover:text-rose-700" @click="logout"><LogOut :size="17" />{{ isHindi ? 'लॉग आउट' : 'Sign out' }}</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center rounded-xl border border-slate-200 bg-slate-50/80 p-0.5 sm:hidden">
+                        <button type="button" @click="switchLanguage('en')" class="rounded-lg px-2 py-1.5 text-[11px] font-bold" :class="!isHindi ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500'">EN</button>
+                        <button type="button" @click="switchLanguage('hi')" class="rounded-lg px-2 py-1.5 text-[11px] font-bold" :class="isHindi ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500'">हि</button>
+                    </div>
                 </div>
             </div>
         </header>
