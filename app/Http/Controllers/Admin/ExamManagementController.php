@@ -29,7 +29,7 @@ class ExamManagementController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Exams/Index', [
-            'exams' => Exam::withCount('questions')->latest('id')->paginate(20),
+            'exams' => Exam::with('questions:id')->withCount('questions')->latest('id')->paginate(20),
             'questions' => Question::where('status', 'published')->with('subject:id,name')->orderBy('id', 'desc')->limit(500)->get(['id', 'subject_id', 'prompt', 'type', 'marks', 'negative_marks']),
         ]);
     }
@@ -108,6 +108,8 @@ class ExamManagementController extends Controller
         $data = $request->validate(['status' => ['required', Rule::in(['draft', 'scheduled', 'published', 'archived'])]]);
         if (in_array($data['status'], ['scheduled', 'published'], true)) {
             abort_if($exam->questions()->count() < 1, 422, 'Add at least one published question before scheduling or publishing.');
+            $unpublished = $exam->questions()->where('status', '!=', 'published')->exists();
+            abort_if($unpublished, 422, 'All exam questions must remain published.');
             if ($data['status'] === 'scheduled') {
                 abort_if(! $exam->starts_at || ! $exam->ends_at || $exam->ends_at->lessThanOrEqualTo($exam->starts_at), 422, 'A scheduled exam needs a valid start and end time.');
             }
