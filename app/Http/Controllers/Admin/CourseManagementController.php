@@ -53,14 +53,14 @@ class CourseManagementController extends Controller
     public function update(Request $request, Course $course): RedirectResponse
     {
         abort_if($course->status === 'archived', 422, 'Archived courses cannot be edited.');
-        $data = $this->validatedCourse($request);
+        $data = $this->validatedCourse($request, $course);
         unset($data['status']);
         $course->update($data);
         $this->audit($request, 'course.updated', $course);
         return back()->with('success', 'Course updated.');
     }
 
-    private function validatedCourse(Request $request): array
+    private function validatedCourse(Request $request, ?Course $course = null): array
     {
         $data = $request->validate([
             'title' => ['required', 'string', 'max:180'],
@@ -71,14 +71,13 @@ class CourseManagementController extends Controller
             'access_type' => ['required', Rule::in(['free', 'paid'])],
             'price' => [$request->input('access_type') === 'paid' ? 'required' : 'nullable', 'numeric', 'min:'.($request->input('access_type') === 'paid' ? '1' : '0'), 'max:99999999.99'],
             'currency' => ['required', 'in:INR'],
-            'status' => ['required', Rule::in(['draft', 'published', 'archived'])],
+            'status' => ['required', Rule::in($course ? ['draft', 'published', 'archived'] : ['draft'])],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ]);
         if ($data['access_type'] === 'free') $data['price'] = 0;
         if ($data['status'] === 'published') {
-            $existingCourse = $request->route('course');
-            abort_if(! $existingCourse || ! $existingCourse->sections()->whereHas('chapters.lessons', fn ($q) => $q->where('status', 'published'))->exists(), 422, 'Add at least one published lesson before publishing a course.');
+            abort_if(! $course || ! $course->sections()->whereHas('chapters.lessons', fn ($q) => $q->where('status', 'published'))->exists(), 422, 'Add at least one published lesson before publishing a course.');
             $data['published_at'] = now();
         }
         return $data;
