@@ -173,8 +173,18 @@ class PaymentController extends Controller
         $eventId = (string) $request->header('X-Razorpay-Event-Id');
         abort_unless($eventId !== '' && strlen($eventId) <= 120, 400, 'Missing webhook event ID.');
         $eventType = (string) ($payload['event'] ?? '');
-        $event = DB::transaction(function () use ($eventId, $eventType, $request) {
-            return DB::table('payment_webhook_events')->insertOrIgnore([
+        $entity = $payload['payload']['payment']['entity'] ?? [];
+        $orderId = $entity['order_id'] ?? null;
+        $paymentId = $entity['id'] ?? null;
+
+        $inserted = DB::transaction(function () use ($eventId, $eventType, $request, $entity, $orderId, $paymentId) {
+            $payment = null;
+            if (in_array($eventType, ['payment.captured', 'payment.failed'], true)) {
+                $payment = Payment::where('provider_order_id', $orderId)->lockForUpdate()->first();
+                abort_unless($payment, 404, 'Payment order not found.');
+            }
+
+            $created = DB::table('payment_webhook_events')->insertOrIgnore([
                 'provider_event_id' => $eventId,
                 'event_type' => $eventType,
                 'payload_hash' => hash('sha256', $request->getContent()),
@@ -182,32 +192,42 @@ class PaymentController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-        });
-        if ($event === 0) {
-            return response()->json(['status' => 'duplicate']);
-        }
-
-        $entity = $payload['payload']['payment']['entity'] ?? [];
-        $orderId = $entity['order_id'] ?? null;
-        $paymentId = $entity['id'] ?? null;
-        if ($eventType === 'payment.captured' && $orderId && $paymentId) {
-            $payment = Payment::where('provider_order_id', $orderId)->first();
-            if ($payment && (int) ($entity['amount'] ?? 0) === $payment->amount_paise
-                && ($entity['currency'] ?? null) === $payment->currency) {
-                $this->markCaptured($payment, $paymentId);
+            if ($created === 0) {
+                return false;
             }
-        } elseif ($eventType === 'payment.failed' && $orderId) {
-            $payment = Payment::where('provider_order_id', $orderId)->where('status', 'pending')->first();
-            if ($payment) {
+
+            if ($eventType === 'payment.captured' && $payment && $paymentId
+                && (int) ($entity['amount'] ?? 0) === $payment->amount_paise
+                && ($entity['currency'] ?? null) === $payment->currency) {
+                if ($payment->status !== 'captured' && $payment->status !== 'refunded') {
+                    $enrollment = TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
+                    $payment->update([
+                        'provider_payment_id' => $paymentId,
+                        'status' => 'captured',
+                        'failure_code' => null,
+                        'failure_description' => null,
+                        'verified_at' => now(),
+                    ]);
+                    $enrollment->update([
+                        'status' => 'active',
+                        'amount_paid' => number_format($payment->amount_paise / 100, 2, '.', ''),
+                        'currency' => $payment->currency,
+                        'payment_reference' => $paymentId,
+                        'enrolled_at' => $enrollment->enrolled_at ?? now(),
+                    ]);
+                }
+            } elseif ($eventType === 'payment.failed' && $payment && $payment->status === 'pending') {
                 $payment->update([
                     'status' => 'failed',
                     'failure_code' => $entity['error_code'] ?? null,
                     'failure_description' => Str::limit((string) ($entity['error_description'] ?? 'Payment failed.'), 500, ''),
                 ]);
             }
-        }
 
-        return response()->json(['status' => 'accepted']);
+            return true;
+        });
+
+        return response()->json(['status' => $inserted ? 'accepted' : 'duplicate']);
     }
 
     public function studentIndex(Request $request): Response
