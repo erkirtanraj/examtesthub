@@ -1,6 +1,6 @@
 # Phase 7 — LMS Course Management
 
-Status: implemented on `feature/phase-7-lms-course-management`; pending CI and review before merge.
+Status: implemented on `feature/phase-7-lms-course-management`; automated PHP tests and frontend production build have passed. Manual responsive QA and Razorpay sandbox verification remain before production deployment.
 
 ## Scope delivered
 
