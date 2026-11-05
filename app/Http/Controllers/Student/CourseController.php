@@ -86,7 +86,7 @@ class CourseController extends Controller
     public function lesson(Request $request, Course $course, CourseLesson $lesson): Response
     {
         abort_unless($course->isAvailable(), 404);
-        abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->where('status', 'published')->exists(), 404);
+        abort_unless($lesson->status === 'published' && $lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->exists(), 404);
         $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->whereIn('status', ['active', 'completed'])->first();
         abort_unless($enrollment || $lesson->is_preview, 403);
         if ($lesson->type === 'video') {
