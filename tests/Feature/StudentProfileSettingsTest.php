@@ -153,6 +153,20 @@ class StudentProfileSettingsTest extends TestCase
         ]);
     }
 
+
+    public function test_student_cannot_change_saved_language_from_language_switch_when_admin_disables_it(): void
+    {
+        $student = $this->makeUser('student', 'language-locked@example.test', ['profile.manage']);
+        StudentProfileSetting::current()->update(['allow_language_edit' => false]);
+
+        $this->actingAs($student)->get('/language/hi')->assertRedirect();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $student->id,
+            'preferred_locale' => 'en',
+        ]);
+    }
+
     public function test_student_can_change_password_after_current_password_verification(): void
     {
         $student = $this->makeUser('student', 'profile-password@example.test', ['profile.manage']);
