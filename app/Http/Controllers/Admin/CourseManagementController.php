@@ -170,8 +170,8 @@ class CourseManagementController extends Controller
         $data = $request->validate([
             'title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'],
             'description' => ['nullable','string','max:10000'], 'description_hi' => ['nullable','string','max:10000'],
-            'type' => ['required', Rule::in(['video','text'])], 'video_url' => ['nullable','url','max:2048'],
-            'content' => ['nullable','string','max:100000'], 'is_preview' => ['boolean'],
+            'type' => ['required', Rule::in(['video','text'])], 'video_url' => ['nullable','url','starts_with:https://','max:2048'],
+            'content' => ['nullable','string','max:100000'], 'content_hi' => ['nullable','string','max:100000'], 'is_preview' => ['boolean'],
             'duration_minutes' => ['nullable','integer','min:0','max:65535'],
             'status' => ['required', Rule::in(['draft','published'])], 'position' => ['required','integer','min:1'],
         ]);
