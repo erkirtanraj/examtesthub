@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../Layouts/PortalLayout.vue';
-import { ArrowUpRight, BookOpen, ClipboardCheck, GraduationCap, ChartNoAxesCombined, FileText, CreditCard, UserRound, Sparkles } from 'lucide-vue-next';
+import { ArrowUpRight, BookOpen, ClipboardCheck, GraduationCap, TrendingUp, FileText, CreditCard, UserRound, Sparkles } from 'lucide-vue-next';
 
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
@@ -12,7 +12,7 @@ const actions = computed(() => hi.value ? [
     { title: 'मेरी टेस्ट सीरीज़', detail: 'अपने नामांकन और उपलब्ध टेस्ट देखें', href: '/student/my-test-series', icon: ClipboardCheck, tone: 'violet' },
     { title: 'उपलब्ध परीक्षाएँ', detail: 'अपनी अगली परीक्षा शुरू करें', href: '/student/exams', icon: BookOpen, tone: 'sky' },
     { title: 'कोर्स कैटलॉग', detail: 'वीडियो और पाठ आधारित अध्ययन करें', href: '/student/courses', icon: GraduationCap, tone: 'emerald' },
-    { title: 'मेरा प्रदर्शन', detail: 'अपने परीक्षा परिणाम और प्रगति देखें', href: '/student/performance', icon: ChartNoAxesCombined, tone: 'amber' },
+    { title: 'मेरा प्रदर्शन', detail: 'अपने परीक्षा परिणाम और प्रगति देखें', href: '/student/performance', icon: TrendingUp, tone: 'amber' },
     { title: 'अध्ययन सामग्री', detail: 'नोट्स और PDF संसाधन खोलें', href: '/student/materials', icon: FileText, tone: 'rose' },
     { title: 'भुगतान इतिहास', detail: 'अपने लेनदेन और रसीदें देखें', href: '/student/payments', icon: CreditCard, tone: 'slate' },
 ] : [
