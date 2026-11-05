@@ -9,6 +9,7 @@
 - Signed webhook endpoint with event-ID idempotency for `payment.captured` and `payment.failed`.
 - Student and admin payment history screens.
 - Paid enrollment remains pending until a captured payment is verified. Client-side checkout callbacks alone never activate access.
+- Repeated test-series checkout requests reuse the existing pending Razorpay order; concurrent order creation is serialized per test series and enrollment.
 
 ## Configuration
 
@@ -34,6 +35,7 @@ Configure the Razorpay webhook URL as `https://YOUR-DOMAIN/api/v1/payments/razor
 
 ## Operational notes
 
+- Checkout retry reuses an existing pending order. An order-creation attempt that remains pending without a provider order ID is treated as in progress for two minutes; an older abandoned attempt is marked failed before a new order is created.
 - Use Razorpay test keys and a test-mode webhook before production.
 - Configure the exact public webhook URL in the Razorpay dashboard.
 - Do not expose `RAZORPAY_KEY_SECRET` or `RAZORPAY_WEBHOOK_SECRET` to frontend code.
