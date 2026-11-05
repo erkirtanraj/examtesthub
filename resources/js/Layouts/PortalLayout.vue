@@ -34,7 +34,13 @@ function switchLanguage(next) { router.get('/language/' + next); }
                 <nav class="space-y-1">
                     <a :href="portal === 'admin' ? '/admin/dashboard' : '/student/dashboard'" class="block rounded-xl bg-indigo-50 px-3 py-2.5 text-sm font-bold text-indigo-700">{{ isHindi ? 'डैशबोर्ड' : 'Dashboard' }}</a>
                     <a v-if="portal === 'student'" href="/student/dashboard#learning" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'मेरी पढ़ाई' : 'My learning' }}</a>
-                    <a v-if="portal === 'admin'" href="/admin/dashboard#operations" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'प्रबंधन' : 'Operations' }}</a>
+                    <template v-if="portal === 'admin'">
+                        <a v-if="user?.permissions?.includes('users.view')" href="/admin/users" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'उपयोगकर्ता' : 'Users' }}</a>
+                        <a v-if="user?.permissions?.includes('roles.manage')" href="/admin/roles" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'भूमिकाएँ' : 'Roles' }}</a>
+                        <a v-if="user?.permissions?.includes('permissions.manage')" href="/admin/permissions" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'अनुमतियाँ' : 'Permissions' }}</a>
+                        <a v-if="user?.permissions?.includes('audit.view')" href="/admin/activity" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'गतिविधि लॉग' : 'Audit activity' }}</a>
+                        <a v-if="user?.permissions?.includes('profile.manage')" href="/admin/profile" class="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50">{{ isHindi ? 'मेरी प्रोफ़ाइल' : 'My profile' }}</a>
+                    </template>
                 </nav>
             </aside>
             <main>
