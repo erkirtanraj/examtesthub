@@ -198,7 +198,7 @@ class PaymentController extends Controller
             }
             abort_if($locked->status === 'refunded', 409, 'This payment has been refunded.');
             $enrollment = $locked->course_enrollment_id
-                ? \\App\\Models\\CourseEnrollment::whereKey($locked->course_enrollment_id)->lockForUpdate()->firstOrFail()
+                ? \App\Models\CourseEnrollment::whereKey($locked->course_enrollment_id)->lockForUpdate()->firstOrFail()
                 : TestSeriesEnrollment::whereKey($locked->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
             $locked->update([
                 'provider_payment_id' => $providerPaymentId,
