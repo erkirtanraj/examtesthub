@@ -1,6 +1,6 @@
 # Admin Navigation and Responsive UI
 
-Status: navigation shell implemented on `feature/admin-sidebar-responsive-ui`. Planned groups are not live routes and must not be presented as completed functionality.
+Status: responsive navigation shell and LMS Course Management are implemented on `main`. Phase 7 was merged on 2026-11-05. The responsive QA matrix below remains a manual release check.
 
 ## Admin sidebar
 
@@ -27,7 +27,6 @@ Student navigation is kept separate and includes dashboard, test series, my test
 
 These modules should appear in the navigation only after their routes, authorization, controllers, screens and tests are delivered:
 
-- LMS Courses: course catalogue, course builder, sections, chapters, lessons, resources, preview, pricing, publication, enrollments and progress.
 - PDF & Study Materials: material catalogue, uploads, categories, private file access and download history.
 - Reports & Analytics: registration, enrollment, revenue, exam participation, student performance and exports.
 - Notifications: announcements, email templates, delivery history.

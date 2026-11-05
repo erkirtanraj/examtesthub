@@ -90,6 +90,22 @@ class CourseManagementTest extends TestCase
         $this->assertDatabaseHas('courses', ['title' => 'Competitive Maths', 'status' => 'draft']);
     }
 
+    public function test_new_courses_must_start_as_draft_until_the_curriculum_is_ready(): void
+    {
+        $admin = $this->user('super-admin', 'course-admin-publish-at-create@example.test');
+
+        $this->actingAs($admin)->post('/admin/courses', [
+            'title' => 'Prematurely Published Course',
+            'title_hi' => 'समय से पहले प्रकाशित कोर्स',
+            'access_type' => 'free',
+            'price' => 0,
+            'currency' => 'INR',
+            'status' => 'published',
+        ])->assertSessionHasErrors('status');
+
+        $this->assertDatabaseMissing('courses', ['title' => 'Prematurely Published Course']);
+    }
+
     public function test_course_cannot_be_published_without_a_published_lesson(): void
     {
         $admin = $this->user('super-admin', 'course-admin2@example.test');

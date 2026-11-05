@@ -89,6 +89,28 @@ class PaymentGatewayTest extends TestCase
         ]);
     }
 
+    public function test_checkout_retry_reuses_the_existing_pending_razorpay_order(): void
+    {
+        $admin = $this->user('super-admin', 'pay-admin-retry@example.test');
+        $student = $this->user('student', 'pay-student-retry@example.test');
+        $series = $this->paidSeries($admin);
+        $payment = $this->paymentFor($student, $series);
+
+        Http::fake();
+
+        $this->actingAs($student)
+            ->post('/student/test-series/'.$series->id.'/checkout')
+            ->assertRedirect('/student/payments/'.$payment->id.'/checkout');
+
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('payments', 1);
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'provider_order_id' => 'order_test_123',
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_valid_checkout_signature_and_captured_provider_payment_activate_enrollment(): void
     {
         $admin = $this->user('super-admin', 'pay-admin2@example.test');
