@@ -6,14 +6,14 @@ const props=defineProps({course:Object});
 const page=usePage(); const hi=computed(()=>page.props.locale==='hi');
 const sectionForm=useForm({title:'',title_hi:'',description:'',description_hi:''});
 const chapterForm=useForm({title:'',title_hi:''});
-const lessonForm=useForm({title:'',title_hi:'',description:'',description_hi:'',type:'text',video_url:'',content:'',content_hi:'',is_preview:false,duration_minutes:0,status:'draft'});
+const lessonForm=useForm({title:'',title_hi:'',description:'',description_hi:'',type:'text',video_url:'',content:'',content_hi:'',is_preview:false,duration_minutes:0,status:'draft',position:1});
 const resourceForm=useForm({title:'',title_hi:'',url:'',file:null});
 const activeSection=ref(null), activeChapter=ref(null), activeLesson=ref(null), editingLesson=ref(null);
 function addSection(){sectionForm.post('/admin/courses/'+props.course.id+'/sections',{onSuccess:()=>sectionForm.reset()});}
 function addChapter(){chapterForm.post('/admin/courses/'+props.course.id+'/sections/'+activeSection.value+'/chapters',{onSuccess:()=>chapterForm.reset()});}
 function addLesson(){const options={onSuccess:()=>{lessonForm.reset();editingLesson.value=null;}};if(editingLesson.value)lessonForm.put('/admin/courses/'+props.course.id+'/lessons/'+editingLesson.value,options);else lessonForm.post('/admin/courses/'+props.course.id+'/chapters/'+activeChapter.value+'/lessons',options);}
 function addResource(){resourceForm.post('/admin/courses/'+props.course.id+'/lessons/'+activeLesson.value+'/resources',{onSuccess:()=>resourceForm.reset()});}
-function editLesson(lesson){activeChapter.value=lesson.chapter_id;editingLesson.value=lesson.id;Object.assign(lessonForm,{title:lesson.title,title_hi:lesson.title_hi||'',description:lesson.description||'',description_hi:lesson.description_hi||'',type:lesson.type,video_url:lesson.video_url||'',content:lesson.content||'',content_hi:lesson.content_hi||'',is_preview:!!lesson.is_preview,duration_minutes:lesson.duration_minutes||0,status:lesson.status});}
+function editLesson(lesson){activeChapter.value=lesson.chapter_id;editingLesson.value=lesson.id;Object.assign(lessonForm,{title:lesson.title,title_hi:lesson.title_hi||'',description:lesson.description||'',description_hi:lesson.description_hi||'',type:lesson.type,video_url:lesson.video_url||'',content:lesson.content||'',content_hi:lesson.content_hi||'',is_preview:!!lesson.is_preview,duration_minutes:lesson.duration_minutes||0,status:lesson.status,position:lesson.position||1});}
 function publish(){if(confirm('Publish this course? It must contain at least one published lesson.'))router.patch('/admin/courses/'+props.course.id+'/status',{status:'published'});}
 </script>
 <template>
