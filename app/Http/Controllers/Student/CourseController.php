@@ -37,7 +37,10 @@ class CourseController extends Controller
 
     public function myCourses(Request $request): Response
     {
-        $courses = Course::where('status', 'published')->whereHas('enrollments', fn ($q) => $q->where('user_id', $request->user()->id))
+        $courses = Course::where('status', 'published')
+            ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', now()))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $request->user()->id))
             ->withCount('sections')
             ->with(['enrollments' => fn ($q) => $q->where('user_id', $request->user()->id)])
             ->orderBy('title')->paginate(12)->through(fn ($course) => [
@@ -101,6 +104,7 @@ class CourseController extends Controller
             }
         }
         $lesson->load('resources');
+        $lesson->setRelation('resources', $lesson->resources->map(fn ($resource) => $resource->only(['id', 'title', 'title_hi', 'type', 'url', 'file_size'])));
         $progress = $enrollment ? CourseLessonProgress::firstOrCreate(
             ['course_enrollment_id' => $enrollment->id, 'lesson_id' => $lesson->id],
             ['status' => 'in_progress', 'started_at' => now()]
