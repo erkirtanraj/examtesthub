@@ -1,6 +1,6 @@
 # Admin Navigation and Responsive UI
 
-Status: navigation shell implemented on `feature/admin-sidebar-responsive-ui`. Feature groups marked "planned" are not live routes and must not be presented as completed functionality.
+Status: navigation shell implemented on `feature/admin-sidebar-responsive-ui`. Planned groups are not live routes and must not be presented as completed functionality.
 
 ## Admin sidebar
 
@@ -16,7 +16,8 @@ The navigation is grouped by existing route areas and filtered using the permiss
 | Academic Management | Question Bank | `/admin/questions` | `questions.manage` |
 | Exam Management | All Exams | `/admin/exams` | `tests.manage` |
 | Exam Management | Test Series | `/admin/test-series` | `tests.manage` |
-| Exam Management | Payments | `/admin/payments` | `tests.manage` |\n| LMS Course Management | All Courses | `/admin/courses` | `courses.view` |
+| Exam Management | Payments | `/admin/payments` | `tests.manage` |
+| LMS Course Management | All Courses | `/admin/courses` | `courses.view` |
 | Administration & Security | Audit Activity | `/admin/activity` | `audit.view` |
 | Administration & Security | My Profile | `/admin/profile` | `profile.manage` |
 
