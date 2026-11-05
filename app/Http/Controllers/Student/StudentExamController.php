@@ -49,7 +49,7 @@ class StudentExamController extends Controller {
    $q=$qs->get($id); if(!$q)return null; $a=$saved->get($id);
    $pivot=DB::table('exam_question')->where('exam_id',$exam->id)->where('question_id',$id)->first();
    return ['id'=>$q->id,'type'=>$q->type,'prompt'=>$q->prompt,'options'=>$q->options??[],
-    'marks'=>$pivot?->marks??$q->marks,'answer'=>$a?->answer,'marked_for_review'=>(bool)$a?->marked_for_review];
+    'marks'=>$pivot?->marks??$q->marks,'answer'=>$a?->answer,'marked_for_review'=>$a ? (bool) $a->marked_for_review : false];
   })->filter()->values();
   return Inertia::render('Student/Exams/Attempt',['attempt'=>['id'=>$attempt->id,'expires_at'=>$attempt->expires_at->toIso8601String()],
    'exam'=>['title'=>$exam->title,'instructions'=>$exam->instructions],'questions'=>$questions]);
