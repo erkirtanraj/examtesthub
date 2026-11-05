@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
 
         $rolePermissions = [
             'super-admin' => $permissionSlugs,
-            'admin' => ['users.view', 'users.manage', 'courses.view', 'courses.manage', 'lessons.manage', 'materials.manage', 'questions.manage', 'tests.manage', 'results.view', 'payments.view', 'payments.manage', 'settings.manage', 'reports.view'],
+            'admin' => ['users.view', 'users.manage', 'users.import', 'users.export', 'profile.manage', 'courses.view', 'courses.manage', 'lessons.manage', 'materials.manage', 'questions.manage', 'tests.manage', 'results.view', 'payments.view', 'payments.manage', 'settings.manage', 'reports.view'],
             'content-manager' => ['courses.view', 'courses.manage', 'lessons.manage', 'materials.manage'],
             'exam-manager' => ['questions.manage', 'tests.manage', 'results.view', 'reports.view'],
             'student' => ['courses.view', 'tests.take', 'results.view-own', 'profile.manage'],
