@@ -1,86 +1,167 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 
 const props = defineProps({ items: { type: Array, default: () => [] } });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
-const activeType = ref('home_sections');
-const editingId = ref(null);
-const isSectionMode = computed(() => activeType.value === 'home_sections');
-const blank = () => ({ type: 'home', key: '', title: '', slug: '', content: isSectionMode.value ? { en: { title: '', description: '' }, hi: { title: '', description: '' }, section_type: 'custom' } : { en: '', hi: '' }, is_published: true, sort_order: 50 });
-const form = useForm(blank());
-const types = [
-    { value: 'home_sections', en: 'Homepage sections', hi: 'होमपेज सेक्शन' },
-    { value: 'home', en: 'Homepage text (legacy copy)', hi: 'पुराना होमपेज टेक्स्ट' },
-    { value: 'menu', en: 'Menu links', hi: 'मेन्यू लिंक' },
-    { value: 'footer', en: 'Footer content', hi: 'फुटर सामग्री' },
-    { value: 'contact', en: 'Contact options', hi: 'संपर्क विकल्प' },
-    { value: 'legal', en: 'Legal / T&C', hi: 'कानूनी / नियम एवं शर्तें' },
-    { value: 'page', en: 'Custom pages', hi: 'कस्टम पेज' },
-];
-const filtered = computed(() => isSectionMode.value ? props.items.filter(item => item.type === 'home' && (item.key || '').startsWith('section.')) : props.items.filter(item => item.type === activeType.value));
 const success = computed(() => page.props.flash?.success || '');
-function reset() { editingId.value = null; form.defaults(blank()); form.reset(); }
-function edit(item) {
-    editingId.value = item.id;
-    form.type = item.type; form.key = item.key || ''; form.title = item.title || '';
-    form.slug = item.slug || ''; form.content = item.content || (isSectionMode.value ? { en: { title: '', description: '' }, hi: { title: '', description: '' }, section_type: 'custom' } : { en: '', hi: '' });
-    form.is_published = !!item.is_published; form.sort_order = item.sort_order || 0;
+const blocks = ref([]);
+const saving = ref(false);
+
+const defaults = () => ({
+    en: { title: '', description: '', cta_primary: '', cta_primary_url: '', cta_secondary: '', cta_secondary_url: '', image_url: '', html: '' },
+    hi: { title: '', description: '', cta_primary: '', cta_primary_url: '', cta_secondary: '', cta_secondary_url: '', image_url: '', html: '' },
+    section_type: 'custom',
+});
+
+function loadBlocks() {
+    blocks.value = props.items
+        .filter(item => item.type === 'home' && (item.key || '').startsWith('section.'))
+        .map(item => ({
+            ...item,
+            content: {
+                ...defaults(),
+                ...(item.content || {}),
+                en: { ...defaults().en, ...(item.content?.en || {}) },
+                hi: { ...defaults().hi, ...(item.content?.hi || {}) },
+            },
+        }))
+        .sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
 }
-function save() {
-    const url = editingId.value ? '/admin/settings/website-content/' + editingId.value : '/admin/settings/website-content';
-    form.transform(data => ({ ...data, type: isSectionMode.value ? 'home' : activeType.value })).submit(editingId.value ? 'put' : 'post', url, { preserveScroll: true, onSuccess: reset });
+watch(() => props.items, loadBlocks, { immediate: true, deep: true });
+
+function move(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= blocks.value.length) return;
+    const current = blocks.value[index];
+    blocks.value[index] = blocks.value[target];
+    blocks.value[target] = current;
+    blocks.value.forEach((block, i) => block.sort_order = (i + 1) * 10);
 }
-function remove(item) {
-    if (confirm(hi.value ? 'क्या आप यह सामग्री हटाना चाहते हैं?' : 'Delete this content item?')) {
-        router.delete('/admin/settings/website-content/' + item.id, { preserveScroll: true });
-    }
+
+function saveLayout() {
+    saving.value = true;
+    router.put('/admin/settings/website-content/layout', {
+        blocks: blocks.value.map((block, index) => ({
+            id: block.id,
+            sort_order: (index + 1) * 10,
+            is_published: !!block.is_published,
+        })),
+    }, { preserveScroll: true, onFinish: () => saving.value = false });
+}
+
+function saveBlock(block) {
+    router.put('/admin/settings/website-content/' + block.id, {
+        type: 'home',
+        key: block.key,
+        title: block.title,
+        slug: null,
+        content: block.content,
+        is_published: !!block.is_published,
+        sort_order: block.sort_order,
+    }, { preserveScroll: true });
+}
+
+function addCustomHtml() {
+    const key = 'section.custom.' + Date.now();
+    router.post('/admin/settings/website-content', {
+        type: 'home',
+        key,
+        title: hi.value ? 'नया HTML ब्लॉक' : 'New HTML block',
+        slug: null,
+        content: {
+            ...defaults(),
+            section_type: 'html',
+            en: { ...defaults().en, title: 'New section', html: '<h2>New section</h2><p>Add your content here.</p>' },
+            hi: { ...defaults().hi, title: 'नया सेक्शन', html: '<h2>नया सेक्शन</h2><p>यहाँ अपनी सामग्री जोड़ें।</p>' },
+        },
+        is_published: true,
+        sort_order: (blocks.value.length + 1) * 10,
+    }, { preserveScroll: true });
+}
+
+function resetLayout() {
+    loadBlocks();
 }
 </script>
 
 <template>
-    <PortalLayout portal="admin" :title="hi ? 'वेबसाइट कंटेंट मैनेजर' : 'Website Content Manager'" :subtitle="hi ? 'होमपेज, मेन्यू, फुटर, पेज, कानूनी और संपर्क सामग्री प्रबंधित करें।' : 'Manage homepage sections, navigation, footer, custom pages, legal text and contact options.'">
-        <div class="space-y-5">
+    <PortalLayout portal="admin" :title="hi ? 'होमपेज लेआउट' : 'Home page layout'" :subtitle="hi ? 'सेक्शन का क्रम बदलें, दिखाएँ या छिपाएँ और कस्टम HTML ब्लॉक जोड़ें।' : 'Reorder with ↑ / ↓. Toggle blocks on/off. Add custom HTML sections for anything else.'">
+        <div class="space-y-4">
             <div v-if="success" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ success }}</div>
-            <div class="flex flex-wrap gap-2">
-                <button v-for="type in types" :key="type.value" @click="activeType = type.value; reset()" class="rounded-xl border px-4 py-2 text-sm font-semibold" :class="activeType === type.value ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'">{{ hi ? type.hi : type.en }}</button>
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-sm text-slate-500">{{ blocks.length }} {{ hi ? 'सेक्शन' : 'sections' }} · {{ blocks.filter(block => block.is_published).length }} {{ hi ? 'दिख रहे हैं' : 'visible' }}</p>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" @click="addCustomHtml" class="rounded-lg bg-emerald-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-900">＋ {{ hi ? 'कस्टम HTML ब्लॉक जोड़ें' : 'Add custom HTML block' }}</button>
+                    <button type="button" @click="saveLayout" :disabled="saving" class="rounded-lg bg-emerald-950 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{{ saving ? (hi ? 'सेव हो रहा है…' : 'Saving…') : (hi ? 'लेआउट सेव करें' : 'Save layout') }}</button>
+                    <button type="button" @click="resetLayout" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ hi ? 'रीसेट' : 'Reset' }}</button>
+                </div>
             </div>
-            <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,.85fr)]">
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <div class="mb-4 flex items-center justify-between gap-3"><h2 class="font-bold text-slate-900">{{ hi ? 'मौजूदा सामग्री' : 'Existing content' }}</h2><span class="text-xs text-slate-500">{{ filtered.length }} {{ hi ? 'आइटम' : 'items' }}</span></div>
-                    <div v-if="!filtered.length" class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">{{ hi ? 'इस सेक्शन में अभी कोई सामग्री नहीं है। दाईं ओर से जोड़ें।' : 'No content in this section yet. Add your first item using the editor.' }}</div>
-                    <div v-else class="divide-y divide-slate-100">
-                        <article v-for="item in filtered" :key="item.id" class="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0">
-                            <div class="min-w-0"><p class="font-semibold text-slate-800">{{ item.title || item.key || item.slug }}</p><p class="mt-1 text-xs text-slate-500">{{ item.key || item.slug || item.type }} · {{ item.is_published ? (hi ? 'सक्रिय' : 'Enabled') : (hi ? 'बंद' : 'Disabled') }}</p></div>
-                            <div class="flex gap-2"><button @click="edit(item)" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:bg-indigo-50">{{ hi ? 'एडिट' : 'Edit' }}</button><button @click="remove(item)" class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">{{ hi ? 'हटाएँ' : 'Delete' }}</button></div>
-                        </article>
+
+            <div v-if="!blocks.length" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+                {{ hi ? 'अभी कोई होमपेज सेक्शन नहीं है। कस्टम HTML ब्लॉक जोड़ें।' : 'No homepage sections found. Add a custom HTML block to get started.' }}
+            </div>
+
+            <article v-for="(block, index) in blocks" :key="block.id" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-wrap items-start gap-3 border-b border-slate-100 px-4 py-3">
+                    <div class="flex w-7 shrink-0 flex-col items-center text-slate-500">
+                        <button type="button" @click="move(index, -1)" :disabled="index === 0" class="text-lg leading-5 hover:text-slate-950 disabled:opacity-30" aria-label="Move up">▲</button>
+                        <span class="py-1 text-xs">{{ index + 1 }}</span>
+                        <button type="button" @click="move(index, 1)" :disabled="index === blocks.length - 1" class="text-lg leading-5 hover:text-slate-950 disabled:opacity-30" aria-label="Move down">▼</button>
                     </div>
-                </section>
-                <form @submit.prevent="save" class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <div class="flex items-center justify-between"><h2 class="font-bold text-slate-900">{{ editingId ? (hi ? 'सामग्री अपडेट करें' : 'Edit content') : (hi ? 'नई सामग्री जोड़ें' : 'Add content') }}</h2><button v-if="editingId" type="button" @click="reset" class="text-xs font-semibold text-slate-500 hover:text-slate-900">{{ hi ? 'रद्द करें' : 'Cancel edit' }}</button></div>
-                    <label v-if="isSectionMode" class="block text-sm font-semibold text-slate-700">{{ hi ? 'सेक्शन का नाम' : 'Section name' }}<input v-model="form.title" required class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="Testimonials / FAQ / Announcement"></label>
-                    <label v-if="isSectionMode" class="block text-sm font-semibold text-slate-700">{{ hi ? 'ब्लॉक प्रकार' : 'Block type' }}<select v-model="form.content.section_type" class="mt-1 w-full rounded-xl border-slate-300 text-sm"><option value="custom">Custom content block</option></select></label>
-                    <label v-if="isSectionMode" class="block text-sm font-semibold text-slate-700">{{ hi ? 'आंतरिक की (Key)' : 'Section key' }}<input v-model="form.key" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="hero.title / footer.contact"></label>
-                    <label v-if="['page','legal'].includes(activeType)" class="block text-sm font-semibold text-slate-700">{{ hi ? 'पेज शीर्षक' : 'Page title' }}<input v-model="form.title" required class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>
-                    <label v-if="['page','legal'].includes(activeType)" class="block text-sm font-semibold text-slate-700">URL slug<input v-model="form.slug" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="about-us"></label>
-                    <template v-if="isSectionMode">
-                        <label class="block text-sm font-semibold text-slate-700">English title<input v-model="form.content.en.title" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>
-                        <label class="block text-sm font-semibold text-slate-700">English description<textarea v-model="form.content.en.description" rows="3" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></textarea></label>
-                        <label class="block text-sm font-semibold text-slate-700">हिंदी शीर्षक<input v-model="form.content.hi.title" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>
-                        <label class="block text-sm font-semibold text-slate-700">हिंदी विवरण<textarea v-model="form.content.hi.description" rows="3" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></textarea></label>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="rounded bg-emerald-50 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide text-emerald-900">{{ block.content.section_type || block.key.replace('section.', '') }}</span>
+                            <h3 class="text-sm font-bold text-slate-900">{{ block.title || block.content.en.title || 'Untitled section' }}</h3>
+                        </div>
+                        <p class="mt-1 text-xs text-slate-500">{{ block.content.en.description || (block.content.section_type === 'html' ? 'Custom HTML content block' : 'Homepage section') }}</p>
+                    </div>
+                    <label class="flex shrink-0 items-center gap-2 text-xs font-medium text-slate-700">
+                        <input v-model="block.is_published" type="checkbox" class="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600">
+                        {{ hi ? 'दिखाएँ' : 'Visible' }}
+                    </label>
+                </div>
+
+                <div class="space-y-3 px-4 py-4 sm:px-11">
+                    <template v-if="block.content.section_type === 'hero'">
+                        <label class="block text-xs font-medium text-slate-600">{{ hi ? 'शीर्षक / हेडिंग' : 'Title / Heading' }}<input v-model="block.content.en.title" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                        <label class="block text-xs font-medium text-slate-600">{{ hi ? 'सबटाइटल / विवरण' : 'Subtitle / Description' }}<textarea v-model="block.content.en.description" rows="2" class="mt-1 w-full rounded-md border-slate-300 text-sm"></textarea></label>
+                        <div class="grid gap-3 md:grid-cols-2">
+                            <label class="block text-xs font-medium text-slate-600">Primary CTA label<input v-model="block.content.en.cta_primary" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                            <label class="block text-xs font-medium text-slate-600">Primary CTA URL<input v-model="block.content.en.cta_primary_url" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                            <label class="block text-xs font-medium text-slate-600">Secondary CTA label<input v-model="block.content.en.cta_secondary" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                            <label class="block text-xs font-medium text-slate-600">Secondary CTA URL<input v-model="block.content.en.cta_secondary_url" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                        </div>
+                        <label class="block text-xs font-medium text-slate-600">Background image URL<input v-model="block.content.en.image_url" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                    </template>
+                    <template v-else-if="block.content.section_type === 'html'">
+                        <label class="block text-xs font-medium text-slate-600">Section heading<input v-model="block.content.en.title" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                        <label class="block text-xs font-medium text-slate-600">Custom HTML<textarea v-model="block.content.en.html" rows="8" spellcheck="false" class="mt-1 w-full rounded-md border-slate-300 font-mono text-xs"></textarea></label>
+                        <p class="text-xs text-slate-500">Use semantic HTML such as headings, paragraphs, lists and links. Script tags and inline event handlers should not be added.</p>
                     </template>
                     <template v-else>
-                        <label class="block text-sm font-semibold text-slate-700">English<textarea v-model="form.content.en" rows="4" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="English content"></textarea></label>
-                        <label class="block text-sm font-semibold text-slate-700">हिंदी<textarea v-model="form.content.hi" rows="4" class="mt-1 w-full rounded-xl border-slate-300 text-sm" placeholder="हिंदी सामग्री"></textarea></label>
+                        <label class="block text-xs font-medium text-slate-600">Title / Heading<input v-model="block.content.en.title" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                        <label class="block text-xs font-medium text-slate-600">Subtitle / Description<textarea v-model="block.content.en.description" rows="3" class="mt-1 w-full rounded-md border-slate-300 text-sm"></textarea></label>
                     </template>
-                    <label class="block text-sm font-semibold text-slate-700">{{ hi ? 'क्रम' : 'Display order' }}<input v-model.number="form.sort_order" type="number" min="0" class="mt-1 w-full rounded-xl border-slate-300 text-sm"></label>
-                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-700"><input v-model="form.is_published" type="checkbox" class="rounded border-slate-300 text-indigo-600"> {{ isSectionMode ? (hi ? 'होमपेज पर सेक्शन दिखाएँ' : 'Enable this section on homepage') : (hi ? 'सार्वजनिक रूप से प्रकाशित करें' : 'Publish publicly') }}</label>
-                    <button :disabled="form.processing" class="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60">{{ form.processing ? (hi ? 'सेव हो रहा है...' : 'Saving...') : (hi ? 'सेव करें' : 'Save content') }}</button>
-                    <p v-if="Object.keys(form.errors).length" class="text-xs text-rose-600">{{ Object.values(form.errors).join(' ') }}</p>
-                </form>
-            </div>
+
+                    <details class="rounded-lg border border-slate-200 p-3">
+                        <summary class="cursor-pointer text-xs font-bold text-slate-700">हिंदी सामग्री / Hindi content</summary>
+                        <div class="mt-3 space-y-3">
+                            <label class="block text-xs font-medium text-slate-600">शीर्षक<input v-model="block.content.hi.title" class="mt-1 w-full rounded-md border-slate-300 text-sm"></label>
+                            <label v-if="block.content.section_type !== 'html'" class="block text-xs font-medium text-slate-600">विवरण<textarea v-model="block.content.hi.description" rows="2" class="mt-1 w-full rounded-md border-slate-300 text-sm"></textarea></label>
+                            <label v-else class="block text-xs font-medium text-slate-600">HTML<textarea v-model="block.content.hi.html" rows="6" spellcheck="false" class="mt-1 w-full rounded-md border-slate-300 font-mono text-xs"></textarea></label>
+                        </div>
+                    </details>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                        <span class="text-xs text-slate-500">Section ID: {{ block.key }}</span>
+                        <button type="button" @click="saveBlock(block)" class="rounded-lg border border-emerald-800 px-4 py-2 text-xs font-bold text-emerald-950 hover:bg-emerald-50">{{ hi ? 'सेक्शन सामग्री सेव करें' : 'Save section content' }}</button>
+                    </div>
+                </div>
+            </article>
         </div>
     </PortalLayout>
 </template>
