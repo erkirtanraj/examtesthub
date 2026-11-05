@@ -64,6 +64,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  Route::middleware('permission:courses.view')->group(function(){
   Route::get('/courses',[CourseManagementController::class,'index'])->name('courses.index');
   Route::get('/courses/{course}/builder',[CourseManagementController::class,'builder'])->name('courses.builder');
+  Route::get('/courses/{course}/enrollments',[CourseManagementController::class,'enrollments'])->name('courses.enrollments');
  });
  Route::middleware('permission:courses.manage')->group(function(){
   Route::post('/courses',[CourseManagementController::class,'store'])->name('courses.store');
@@ -96,6 +97,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
 Route::middleware(['auth','active','role:student'])->prefix('student')->name('student.')->group(function(){
  Route::middleware('permission:courses.view')->group(function(){
   Route::get('/courses',[CourseController::class,'index'])->name('courses.index');
+  Route::get('/my-courses',[CourseController::class,'myCourses'])->name('courses.mine');
   Route::get('/courses/{course:slug}',[CourseController::class,'show'])->name('courses.show');
   Route::get('/courses/{course:slug}/lessons/{lesson}',[CourseController::class,'lesson'])->name('courses.lesson');
   Route::post('/courses/{course:slug}/enroll',[CourseController::class,'enroll'])->middleware('throttle:10,1')->name('courses.enroll');
