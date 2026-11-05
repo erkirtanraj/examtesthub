@@ -115,6 +115,32 @@ class WebsiteContentController extends Controller
         }
     }
 
+
+    public function saveLayout(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'blocks' => ['required', 'array'],
+            'blocks.*.id' => ['required', 'integer', 'exists:website_contents,id'],
+            'blocks.*.sort_order' => ['required', 'integer', 'min:0', 'max:100000'],
+            'blocks.*.is_published' => ['required', 'boolean'],
+        ]);
+
+        foreach ($data['blocks'] as $block) {
+            WebsiteContent::query()
+                ->whereKey($block['id'])
+                ->where('type', 'home')
+                ->where('key', 'like', 'section.%')
+                ->update([
+                    'sort_order' => $block['sort_order'],
+                    'is_published' => $block['is_published'],
+                ]);
+        }
+
+        $this->audit($request, 'website_content.layout_saved', ['count' => count($data['blocks'])]);
+
+        return back()->with('success', 'Homepage layout saved.');
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
