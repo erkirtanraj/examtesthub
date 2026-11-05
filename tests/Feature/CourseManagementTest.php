@@ -155,8 +155,8 @@ class CourseManagementTest extends TestCase
             'webhook_secret' => 'webhook_secret', 'base_url' => 'https://api.razorpay.com/v1',
         ]]);
         Http::fake([
-            'api.razorpay.com/v1/orders' => Http::response(['id' => 'order_course_123'], 200),
-            'api.razorpay.com/v1/payments/pay_course_123' => Http::response([
+            '*/v1/orders' => Http::response(['id' => 'order_course_123'], 200),
+            '*/v1/payments/pay_course_123' => Http::response([
                 'id' => 'pay_course_123', 'order_id' => 'order_course_123',
                 'amount' => 25000, 'currency' => 'INR', 'status' => 'captured',
             ], 200),
