@@ -11,6 +11,7 @@ const mobileMenuOpen = ref(false);
 const page = usePage();
 const homepageSections = computed(() => page.props.homepageSections || []);
 const sectionEnabled = key => homepageSections.value.some(section => section.key === ('section.' + key) && section.is_published);
+const sectionContent = key => { const section = homepageSections.value.find(item => item.key === ('section.' + key)); return section?.content?.[locale.value] || section?.content?.en || {}; };
 const customSections = computed(() => homepageSections.value.filter(section => section.content?.section_type === 'custom').sort((a, b) => a.sort_order - b.sort_order));
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 const dashboardUrl = computed(() => {
@@ -163,8 +164,8 @@ const steps = computed(() => [
                     <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white px-4 py-2 text-xs font-extrabold tracking-wide text-brand-700 shadow-sm">
                         <Sparkles :size="15" /> {{ copy.eyebrow }}
                     </div>
-                    <h1 class="max-w-2xl text-4xl font-black leading-[1.12] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.7rem]">{{ copy.title }}</h1>
-                    <p class="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">{{ copy.description }}</p>
+                    <h1 class="max-w-2xl text-4xl font-black leading-[1.12] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.7rem]">{{ sectionContent('hero').title || copy.title }}</h1>
+                    <p class="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">{{ sectionContent('hero').description || copy.description }}</p>
                     <div class="mt-8 flex flex-wrap gap-3">
                         <a href="/register" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-brand-700">
                             {{ copy.explore }} <ArrowRight :size="17" />
@@ -183,7 +184,7 @@ const steps = computed(() => [
                         <div class="flex items-center justify-between border-b border-slate-100 pb-5">
                             <div>
                                 <p class="text-xs font-bold uppercase tracking-[.16em] text-brand-600">ExamTestHub</p>
-                                <h2 class="mt-2 text-xl font-extrabold tracking-tight text-slate-900">{{ copy.sectionTitle }}</h2>
+                                <h2 class="mt-2 text-xl font-extrabold tracking-tight text-slate-900">{{ sectionContent('features').title || copy.sectionTitle }}</h2>
                             </div>
                             <span class="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-brand-600"><GraduationCap :size="25" /></span>
                         </div>
@@ -217,7 +218,7 @@ const steps = computed(() => [
                 <div class="mx-auto mb-10 max-w-2xl text-center">
                     <p class="text-xs font-extrabold uppercase tracking-[.2em] text-brand-600">{{ copy.sectionEyebrow }}</p>
                     <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{{ copy.sectionTitle }}</h2>
-                    <p class="mt-4 text-base leading-7 text-slate-600">{{ copy.sectionText }}</p>
+                    <p class="mt-4 text-base leading-7 text-slate-600">{{ sectionContent('features').description || copy.sectionText }}</p>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <article v-for="(item, index) in features" :key="item.title" class="group rounded-2xl border border-slate-200 bg-white p-6 transition duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-950/5">
@@ -237,7 +238,7 @@ const steps = computed(() => [
             <div class="mx-auto max-w-7xl px-5 sm:px-8">
                 <div class="mb-9 text-center">
                     <p class="text-xs font-extrabold uppercase tracking-[.2em] text-brand-600">{{ copy.howEyebrow }}</p>
-                    <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{{ copy.howTitle }}</h2>
+                    <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">{{ sectionContent('steps').title || copy.howTitle }}</h2>
                 </div>
                 <div class="grid gap-4 md:grid-cols-3">
                     <article v-for="step in steps" :key="step.number" class="rounded-2xl border border-slate-200 bg-white p-6">
@@ -252,8 +253,8 @@ const steps = computed(() => [
         <section v-if="sectionEnabled('cta')" class="px-5 py-16 sm:px-8 sm:py-20">
             <div class="mx-auto max-w-5xl rounded-[2rem] bg-gradient-to-br from-indigo-700 via-indigo-700 to-violet-800 px-6 py-12 text-center text-white shadow-xl shadow-indigo-900/15 sm:px-12">
                 <p class="text-xs font-extrabold uppercase tracking-[.2em] text-indigo-200">ExamTestHub</p>
-                <h2 class="mx-auto mt-4 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">{{ copy.ctaTitle }}</h2>
-                <p class="mx-auto mt-4 max-w-xl text-sm leading-7 text-indigo-100 sm:text-base">{{ copy.ctaText }}</p>
+                <h2 class="mx-auto mt-4 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">{{ sectionContent('cta').title || copy.ctaTitle }}</h2>
+                <p class="mx-auto mt-4 max-w-xl text-sm leading-7 text-indigo-100 sm:text-base">{{ sectionContent('cta').description || copy.ctaText }}</p>
                 <div class="mt-8 flex flex-wrap justify-center gap-3">
                     <a href="/register" class="rounded-xl bg-white px-6 py-3.5 text-sm font-extrabold text-indigo-700 shadow-sm transition hover:bg-indigo-50">{{ copy.createAccount }}</a>
                     <a href="/student/login" class="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-sm font-extrabold text-white transition hover:bg-white/20">{{ copy.signIn }}</a>
