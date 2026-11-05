@@ -33,6 +33,22 @@ class CourseController extends Controller
         return Inertia::render('Student/Courses/Index', ['courses' => $courses]);
     }
 
+    public function myCourses(Request $request): Response
+    {
+        $courses = Course::whereHas('enrollments', fn ($q) => $q->where('user_id', $request->user()->id))
+            ->withCount('sections')
+            ->with(['enrollments' => fn ($q) => $q->where('user_id', $request->user()->id)])
+            ->orderBy('title')->paginate(12)->through(fn ($course) => [
+                'id' => $course->id, 'title' => $course->title, 'title_hi' => $course->title_hi,
+                'slug' => $course->slug, 'description' => $course->description, 'description_hi' => $course->description_hi,
+                'category' => $course->category, 'access_type' => $course->access_type,
+                'price' => $course->price, 'currency' => $course->currency,
+                'sections_count' => $course->sections_count,
+                'enrollment' => $course->enrollments->first()?->only(['id','status']),
+            ]);
+        return Inertia::render('Student/Courses/Index', ['courses' => $courses, 'mine' => true]);
+    }
+
     public function show(Request $request, Course $course): Response
     {
         abort_unless($course->isAvailable(), 404);
