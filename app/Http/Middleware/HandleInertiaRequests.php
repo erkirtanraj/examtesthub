@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -24,7 +25,9 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'preferred_locale' => $user->preferred_locale,
                     'roles' => $user->roles()->pluck('slug'),
-                    'permissions' => $user->hasRole('super-admin') ? \\App\\Models\\Permission::pluck('slug') : $user->roles()->with('permissions')->get()->flatMap(fn ($role) => $role->permissions->pluck('slug'))->unique()->values(),
+                    'permissions' => $user->hasRole('super-admin')
+                        ? Permission::pluck('slug')
+                        : $user->roles()->with('permissions')->get()->flatMap(fn ($role) => $role->permissions->pluck('slug'))->unique()->values(),
                 ] : null,
             ],
         ];
