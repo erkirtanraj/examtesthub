@@ -11,7 +11,6 @@ class User extends Authenticatable
     use HasApiTokens;
 
     protected $fillable = ['name', 'email', 'password', 'preferred_locale'];
-
     protected $hidden = ['password', 'remember_token'];
 
     protected function casts(): array
@@ -19,6 +18,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'deactivated_at' => 'datetime',
         ];
     }
 
@@ -44,7 +45,6 @@ class User extends Authenticatable
                 ['slug' => $slug],
                 ['name' => str($slug)->replace('-', ' ')->title()->toString()]
             );
-
             $this->roles()->syncWithoutDetaching([$role->id]);
         }
     }
