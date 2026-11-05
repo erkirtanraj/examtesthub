@@ -4,7 +4,7 @@ use App\Http\Controllers\Api\ApiTokenController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->name('api.v1.')->group(function () {
+Route::prefix('v1')->name('api.v1.')->group(function () {\n    Route::post('/payments/razorpay/webhook', [PaymentController::class, 'webhook'])\n        ->middleware('throttle:120,1')->name('payments.razorpay.webhook');
     Route::get('/health', fn () => response()->json([
         'status' => 'ok',
         'service' => 'examtesthub-api',
