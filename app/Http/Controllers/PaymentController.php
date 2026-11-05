@@ -131,7 +131,7 @@ class PaymentController extends Controller
                 return back()->withErrors(['payment' => 'Unable to start payment. Please try again later.']);
             }
             $payment->update(['provider_order_id' => $response->json('id')]);
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $payment->update(['status' => 'failed', 'failure_description' => 'Payment provider unavailable.']);
             Log::error('Razorpay course order request failed', ['payment_id' => $payment->id, 'exception' => $exception::class]);
             return back()->withErrors(['payment' => 'Payment service is temporarily unavailable.']);
