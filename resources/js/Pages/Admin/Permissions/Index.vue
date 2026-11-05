@@ -1,0 +1,7 @@
+<script setup>
+import { useForm } from '@inertiajs/vue3';
+import PortalLayout from '../../../Layouts/PortalLayout.vue';
+defineProps({permissions:Array});
+const form=useForm({name:'',slug:''});
+</script>
+<template><PortalLayout portal="admin" title="Permission registry" subtitle="Create granular capabilities for role-based access control."><div class="grid gap-5 lg:grid-cols-[360px_1fr]"><form @submit.prevent="form.post('/admin/permissions')" class="h-fit rounded-xl border bg-white p-5"><h2 class="font-bold">Add permission</h2><input v-model="form.name" required placeholder="Display name" class="mt-3 w-full rounded-lg border p-2"><input v-model="form.slug" required placeholder="users.manage" pattern="[a-z0-9]+([.][a-z0-9-]+)+" class="mt-3 w-full rounded-lg border p-2"><p class="mt-2 text-xs text-slate-500">Use namespaced slugs such as users.manage or reports.view.</p><button class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 font-bold text-white">Create permission</button></form><div class="overflow-x-auto rounded-xl border bg-white"><table class="w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-3">Permission</th><th class="p-3">Slug</th><th class="p-3">Assigned roles</th></tr></thead><tbody><tr v-for="p in permissions" :key="p.id" class="border-t"><td class="p-3 font-semibold">{{p.name}}</td><td class="p-3 font-mono text-xs">{{p.slug}}</td><td class="p-3">{{p.roles_count}}</td></tr></tbody></table></div></div></PortalLayout></template>

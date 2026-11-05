@@ -1,0 +1,12 @@
+<script setup>
+import { useForm } from '@inertiajs/vue3';
+import { reactive } from 'vue';
+import PortalLayout from '../../../Layouts/PortalLayout.vue';
+const props=defineProps({roles:Array,permissions:Array});
+const create=useForm({name:'',slug:'',permissions:[]});
+const editForms=reactive(Object.fromEntries(props.roles.map(role=>[role.id,useForm({name:role.name,permissions:role.permissions.map(p=>p.id)})])));
+function formFor(role){return editForms[role.id];}
+</script>
+<template><PortalLayout portal="admin" title="Roles & permissions" subtitle="Define staff roles and map granular permissions.">
+<div class="grid gap-5 lg:grid-cols-2"><section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Create role</h2><form @submit.prevent="create.post('/admin/roles')" class="mt-3 space-y-3"><input v-model="create.name" placeholder="Role name" required class="w-full rounded-lg border p-2"><input v-model="create.slug" placeholder="role-slug" required pattern="[A-Za-z0-9_-]+" class="w-full rounded-lg border p-2"><div class="grid grid-cols-2 gap-2"><label v-for="p in permissions" :key="p.id" class="flex gap-2 text-sm"><input v-model="create.permissions" type="checkbox" :value="p.id">{{p.slug}}</label></div><button class="rounded-lg bg-indigo-600 px-4 py-2 font-bold text-white">Create role</button></form></section>
+<section v-for="role in roles" :key="role.id" class="rounded-xl border bg-white p-5"><div class="flex justify-between"><h2 class="font-bold">{{role.name}} <small class="text-slate-400">({{role.slug}})</small></h2><span class="text-xs text-slate-500">{{role.users_count}} users</span></div><form v-if="role.slug!=='super-admin'" @submit.prevent="formFor(role).put('/admin/roles/'+role.id)" class="mt-3 space-y-3"><input v-model="formFor(role).name" class="w-full rounded-lg border p-2"><div class="grid grid-cols-2 gap-2"><label v-for="p in permissions" :key="p.id" class="flex gap-2 text-xs"><input v-model="formFor(role).permissions" type="checkbox" :value="p.id">{{p.slug}}</label></div><button class="rounded-lg border px-3 py-2 text-sm font-bold">Save permissions</button></form><p v-else class="mt-3 text-xs text-slate-500">Protected system role; all permissions are granted automatically.</p></section></div></PortalLayout></template>
