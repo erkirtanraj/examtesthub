@@ -6,7 +6,9 @@ import { BookOpen, ClipboardCheck, FileText, Search, GraduationCap, LogOut, Layo
 const props = defineProps({ type: String, items: Object, search: String });
 const page = usePage();
 const query = ref(props.search || '');
-const user = computed(() => page.props.auth?.user || null);\nconst dashboardHref = computed(() => (user.value?.roles || []).includes('student') ? '/student/dashboard' : '/admin/dashboard');\nconst actionHref = computed(() => !user.value ? '/student/login' : (props.type === 'courses' ? '/student/courses' : props.type === 'materials' ? '/student/materials' : '/student/test-series'));
+const user = computed(() => page.props.auth?.user || null);
+const dashboardHref = computed(() => (user.value?.roles || []).includes('student') ? '/student/dashboard' : '/admin/dashboard');
+const actionHref = computed(() => !user.value ? '/student/login' : (props.type === 'courses' ? '/student/courses' : props.type === 'materials' ? '/student/materials' : '/student/test-series'));
 const config = computed(() => ({
     courses: { title: 'Courses', subtitle: 'Explore structured courses for your learning goals.', singular: 'course', icon: BookOpen, empty: 'No courses are published yet.' },
     materials: { title: 'Study Materials', subtitle: 'Browse notes and PDF resources by subject and language.', singular: 'material', icon: FileText, empty: 'No study materials are published yet.' },
