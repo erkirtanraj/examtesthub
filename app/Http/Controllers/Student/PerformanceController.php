@@ -1,14 +1,14 @@
 <?php
 
-namespace App\\Http\\Controllers\\Student;
+namespace App\Http\Controllers\Student;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\CourseEnrollment;
-use App\\Models\\ExamAttempt;
-use App\\Models\\TestSeriesEnrollment;
-use Illuminate\\Http\\Request;
-use Inertia\\Inertia;
-use Inertia\\Response;
+use App\Http\Controllers\Controller;
+use App\Models\CourseEnrollment;
+use App\Models\ExamAttempt;
+use App\Models\TestSeriesEnrollment;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PerformanceController extends Controller
 {
@@ -22,8 +22,8 @@ class PerformanceController extends Controller
 
         $summary = (clone $submitted)
             ->selectRaw('COUNT(*) as attempts_count')
-            ->selectRaw('AVG(CASE WHEN total_marks > 0 THEN (score / total_marks) * 100 ELSE NULL END) as average_percentage')
-            ->selectRaw('MAX(CASE WHEN total_marks > 0 THEN (score / total_marks) * 100 ELSE NULL END) as best_percentage')
+            ->selectRaw('AVG(CASE WHEN total_marks > 0 THEN (score * 100.0 / total_marks) ELSE NULL END) as average_percentage')
+            ->selectRaw('MAX(CASE WHEN total_marks > 0 THEN (score * 100.0 / total_marks) ELSE NULL END) as best_percentage')
             ->first();
 
         $recentAttempts = (clone $submitted)
