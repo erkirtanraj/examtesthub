@@ -39,7 +39,7 @@ class CourseController extends Controller
         $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->first();
         $course->load(['sections.chapters.lessons' => fn ($q) => $q->where('status', 'published')->orderBy('position')]);
         $course->sections->each(fn ($section) => $section->chapters->each(fn ($chapter) => $chapter->lessons->each(function ($lesson) use ($enrollment) {
-            $lesson->setAttribute('is_locked', ! $enrollment || $enrollment->status !== 'active' ? ! $lesson->is_preview : false);
+            $lesson->setAttribute('is_locked', ! $enrollment || ! in_array($enrollment->status, ['active', 'completed'], true) ? ! $lesson->is_preview : false);
         })));
         $lessonCount = $course->sections->sum(fn ($section) => $section->chapters->sum(fn ($chapter) => $chapter->lessons->count()));
         $completed = $enrollment ? $enrollment->progress()->where('status', 'completed')->count() : 0;
@@ -64,7 +64,7 @@ class CourseController extends Controller
     {
         abort_unless($course->isAvailable(), 404);
         abort_unless($lesson->chapter()->whereHas('section', fn ($q) => $q->where('course_id', $course->id))->where('status', 'published')->exists(), 404);
-        $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->where('status', 'active')->first();
+        $enrollment = CourseEnrollment::where('course_id', $course->id)->where('user_id', $request->user()->id)->whereIn('status', ['active', 'completed'])->first();
         abort_unless($enrollment || $lesson->is_preview, 403);
         $lesson->load('resources');
         $progress = $enrollment ? CourseLessonProgress::firstOrCreate(
