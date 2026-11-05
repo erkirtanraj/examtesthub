@@ -1,10 +1,11 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
+import { reactive } from 'vue';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 const props=defineProps({roles:Array,permissions:Array});
 const create=useForm({name:'',slug:'',permissions:[]});
-const editForms={};
-function formFor(role){if(!editForms[role.id])editForms[role.id]=useForm({name:role.name,permissions:role.permissions.map(p=>p.id)});return editForms[role.id];}
+const editForms=reactive(Object.fromEntries(props.roles.map(role=>[role.id,useForm({name:role.name,permissions:role.permissions.map(p=>p.id)})])));
+function formFor(role){return editForms[role.id];}
 </script>
 <template><PortalLayout portal="admin" title="Roles & permissions" subtitle="Define staff roles and map granular permissions.">
 <div class="grid gap-5 lg:grid-cols-2"><section class="rounded-xl border bg-white p-5"><h2 class="font-bold">Create role</h2><form @submit.prevent="create.post('/admin/roles')" class="mt-3 space-y-3"><input v-model="create.name" placeholder="Role name" required class="w-full rounded-lg border p-2"><input v-model="create.slug" placeholder="role-slug" required pattern="[A-Za-z0-9_-]+" class="w-full rounded-lg border p-2"><div class="grid grid-cols-2 gap-2"><label v-for="p in permissions" :key="p.id" class="flex gap-2 text-sm"><input v-model="create.permissions" type="checkbox" :value="p.id">{{p.slug}}</label></div><button class="rounded-lg bg-indigo-600 px-4 py-2 font-bold text-white">Create role</button></form></section>
