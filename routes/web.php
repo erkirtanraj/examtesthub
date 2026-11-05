@@ -18,7 +18,7 @@ use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesContro
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');
-Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);if(request()->user())request()->user()->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
+Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);$user=request()->user();if($user&&(!$user->hasRole('student')||StudentProfileSetting::current()->allow_language_edit))$user->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
 Route::middleware('guest')->group(function(){
  Route::get('/admin/login',[PortalAuthenticationController::class,'adminLoginPage'])->name('admin.login');
  Route::post('/admin/login',[PortalAuthenticationController::class,'adminLogin'])->middleware('throttle:5,1')->name('admin.login.store');
