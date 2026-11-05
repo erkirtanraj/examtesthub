@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $permissionSlugs = [
-            'users.view', 'users.manage',
+            'users.view', 'users.manage', 'roles.manage', 'permissions.manage', 'audit.view', 'users.import', 'users.export',
             'courses.view', 'courses.manage', 'lessons.manage', 'materials.manage',
             'questions.manage', 'tests.manage', 'results.view', 'results.view-own',
             'tests.take', 'payments.view', 'payments.manage', 'settings.manage',
