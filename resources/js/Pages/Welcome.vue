@@ -69,10 +69,10 @@ const copy = computed(() => locale.value === 'hi' ? {
 });
 
 const features = computed(() => [
-    { icon: GraduationCap, title: copy.value.courses, description: copy.value.coursesText, href: '/register', tone: 'indigo' },
-    { icon: ClipboardCheck, title: copy.value.tests, description: copy.value.testsText, href: '/register', tone: 'amber' },
-    { icon: FileText, title: copy.value.materials, description: copy.value.materialsText, href: '/register', tone: 'emerald' },
-    { icon: TrendingUp, title: copy.value.performance, description: copy.value.performanceText, href: '/register', tone: 'violet' },
+    { icon: GraduationCap, title: copy.value.courses, description: copy.value.coursesText, href: '/courses', tone: 'indigo' },
+    { icon: ClipboardCheck, title: copy.value.tests, description: copy.value.testsText, href: '/test-series', tone: 'amber' },
+    { icon: FileText, title: copy.value.materials, description: copy.value.materialsText, href: '/study-materials', tone: 'emerald' },
+    { icon: TrendingUp, title: copy.value.performance, description: copy.value.performanceText, href: '/student/login', tone: 'violet' },
 ]);
 
 const steps = computed(() => [
@@ -93,9 +93,9 @@ const steps = computed(() => [
 
                 <nav class="hidden items-center gap-7 lg:flex" aria-label="Main navigation">
                     <a href="#home" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navHome }}</a>
-                    <a href="#features" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navCourses }}</a>
-                    <a href="#features" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navTests }}</a>
-                    <a href="#features" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navMaterials }}</a>
+                    <a href="/courses" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navCourses }}</a>
+                    <a href="/test-series" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navTests }}</a>
+                    <a href="/study-materials" class="text-sm font-semibold text-slate-600 transition hover:text-brand-700">{{ copy.navMaterials }}</a>
                 </nav>
 
                 <div class="hidden items-center gap-2 lg:flex">
@@ -124,8 +124,8 @@ const steps = computed(() => [
             <div v-if="mobileMenuOpen" class="border-t border-slate-100 bg-white px-5 py-4 lg:hidden">
                 <nav class="flex flex-col gap-1">
                     <a @click="mobileMenuOpen = false" href="#home" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navHome }}</a>
-                    <a @click="mobileMenuOpen = false" href="#features" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navCourses }} & {{ copy.navTests }}</a>
-                    <a @click="mobileMenuOpen = false" href="#features" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navMaterials }}</a>
+                    <a @click="mobileMenuOpen = false" href="/courses" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navCourses }}</a>
+                    <a @click="mobileMenuOpen = false" href="/study-materials" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700">{{ copy.navMaterials }}</a>
                     <div class="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
                         <template v-if="!isAuthenticated">
                             <a href="/student/login" class="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-bold text-slate-700">{{ copy.studentLogin }}</a>
@@ -212,7 +212,7 @@ const steps = computed(() => [
                         </span>
                         <h3 class="mt-5 text-lg font-extrabold text-slate-900">{{ item.title }}</h3>
                         <p class="mt-2 text-sm leading-6 text-slate-600">{{ item.description }}</p>
-                        <a href="/register" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-brand-700 hover:text-brand-800">{{ copy.explore }} <ArrowRight :size="15" /></a>
+                        <a :href="item.href" class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-brand-700 hover:text-brand-800">{{ copy.explore }} <ArrowRight :size="15" /></a>
                     </article>
                 </div>
             </div>
