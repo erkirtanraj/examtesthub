@@ -1,7 +1,7 @@
 <script setup>
 import {computed,onBeforeUnmount,onMounted,ref} from 'vue';import {router,usePage} from '@inertiajs/vue3';import PortalLayout from '../../../Layouts/PortalLayout.vue';
 const p=defineProps({attempt:Object,exam:Object,questions:Array});const page=usePage();const hi=computed(()=>page.props.locale==='hi');
-const index=ref(0),seconds=ref(0),saving=ref(false);let timer;
+const index=ref(0),seconds=ref(0),saving=ref(false),submitting=ref(false);let timer;
 const current=computed(()=>p.questions[index.value]);const answers=ref(Object.fromEntries(p.questions.map(q=>[q.id,q.answer||[]])));const review=ref(Object.fromEntries(p.questions.map(q=>[q.id,q.marked_for_review||false])));
 const answered=computed(()=>Object.values(answers.value).filter(a=>a?.some(v=>v!==''&&v!==null)).length);
 const clock=computed(()=>String(Math.floor(seconds.value/60)).padStart(2,'0')+':'+String(seconds.value%60).padStart(2,'0'));
@@ -9,7 +9,7 @@ function save(q){if(!q||saving.value)return;saving.value=true;router.put('/stude
 function select(v){const q=current.value;if(q.type==='multiple_choice'){const a=answers.value[q.id]||[];answers.value[q.id]=a.includes(v)?a.filter(x=>x!==v):[...a,v];}else answers.value[q.id]=[v];save(q);}
 function short(event){answers.value[current.value.id]=[event.target.value];save(current.value);}
 function mark(){review.value[current.value.id]=!review.value[current.value.id];save(current.value);}
-function submit(auto=false){if(!auto&&!confirm(hi.value?'क्या आप परीक्षा जमा करना चाहते हैं?':'Submit your exam now?'))return;router.post('/student/attempts/'+p.attempt.id+'/submit');}
+function submit(auto=false){if(submitting.value)return;if(!auto&&!confirm(hi.value?'क्या आप परीक्षा जमा करना चाहते हैं?':'Submit your exam now?'))return;submitting.value=true;clearInterval(timer);router.post('/student/attempts/'+p.attempt.id+'/submit',{},{onError:()=>submitting.value=false});}
 function tick(){seconds.value=Math.max(0,Math.floor((new Date(p.attempt.expires_at).getTime()-Date.now())/1000));if(seconds.value===0)submit(true);}
 onMounted(()=>{tick();timer=setInterval(tick,1000)});onBeforeUnmount(()=>clearInterval(timer));
 </script>
