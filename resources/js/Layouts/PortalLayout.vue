@@ -24,7 +24,7 @@ const expandedGroups = ref(['Dashboard']);
 const profileHref = computed(() => isAdmin.value ? '/admin/profile' : '/student/profile');
 const profileLabel = computed(() => isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile');
 const accountLabel = computed(() => isHindi.value ? 'खाता' : 'Account');
-const userInitials = computed(() => (user.value?.name || 'U').trim().split(/\\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join(''));
+const userInitials = computed(() => (user.value?.name || 'U').trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join(''));
 
 const iconMap = {
     dashboard: LayoutDashboard, users: Users, academic: Library, questions: Brain,
