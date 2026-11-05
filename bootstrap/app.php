@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocaleFromSession;
 use Illuminate\Foundation\Application;
@@ -24,7 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role' => EnsureUserHasRole::class,\n            'active' => EnsureUserIsActive::class,
+            'role' => EnsureUserHasRole::class,
+            'active' => EnsureUserIsActive::class,
             'permission' => EnsureUserHasPermission::class,
         ]);
     })
