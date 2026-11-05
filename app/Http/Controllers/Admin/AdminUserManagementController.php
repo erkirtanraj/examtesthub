@@ -52,6 +52,12 @@ class AdminUserManagementController extends Controller
         ]);
     }
 
+    public function showUser(User $user): Response
+    {
+        $user->load('roles:id,name,slug');
+        return Inertia::render('Admin/Users/Show', ['user' => $user->only('id', 'name', 'email', 'preferred_locale', 'is_active', 'deactivated_at', 'created_at'), 'roles' => $user->roles]);
+    }
+
     public function storeUser(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -248,7 +254,7 @@ class AdminUserManagementController extends Controller
                     'password' => ['required', Password::min(12)->letters()->mixedCase()->numbers()->symbols()],
                     'locale' => ['required', Rule::in(['en', 'hi'])],
                 ]);
-                if ($validator->fails() || ! Role::where('slug', $roleSlug)->exists() || $roleSlug === 'super-admin') {
+                if ($validator->fails() || ! Role::where('slug', $roleSlug)->exists() || ! in_array($roleSlug, ['student', 'content-manager', 'exam-manager'], true)) {
                     $errors[] = "Line {$line}: invalid fields, duplicate email, or disallowed role.";
                     continue;
                 }
