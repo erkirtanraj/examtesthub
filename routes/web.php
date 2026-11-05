@@ -1,8 +1,10 @@
 <?php
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\CourseManagementController;
+use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\StudyMaterialController as AdminStudyMaterialController;
 use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\PerformanceController;
 use App\Http\Controllers\Student\StudyMaterialController as StudentStudyMaterialController;
 use App\Http\Controllers\Admin\ExamManagementController;
 use App\Http\Controllers\Admin\QuestionBankController;
@@ -27,6 +29,7 @@ Route::post('/logout',[PortalAuthenticationController::class,'logout'])->middlew
 Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-manager'])->prefix('admin')->name('admin.')->group(function(){
  Route::get('/',fn()=>redirect()->route('admin.dashboard'));
  Route::get('/dashboard',fn()=>Inertia::render('Admin/Dashboard'))->name('dashboard');
+ Route::get('/reports',[ReportsController::class,'index'])->middleware('permission:reports.view')->name('reports.index');
  Route::middleware('permission:users.view')->group(function(){
   Route::get('/users',[AdminUserManagementController::class,'users'])->name('users.index');
   Route::get('/users/export',[AdminUserManagementController::class,'exportUsers'])->middleware('permission:users.export')->name('users.export');
@@ -123,6 +126,7 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
  Route::get('/payments/{payment}/checkout',[PaymentController::class,'checkout'])->name('payments.checkout');
  Route::post('/payments/{payment}/verify',[PaymentController::class,'verify'])->middleware('throttle:10,1')->name('payments.verify');
  Route::get('/dashboard',fn()=>Inertia::render('Student/Dashboard'))->name('dashboard');
+ Route::get('/performance',[PerformanceController::class,'index'])->middleware('permission:results.view-own')->name('performance.index');
  Route::get('/test-series',[StudentTestSeriesController::class,'index'])->name('test-series.index');
  Route::get('/my-test-series',[StudentTestSeriesController::class,'mySeries'])->name('test-series.mine');
  Route::post('/test-series/{testSeries}/enroll',[StudentTestSeriesController::class,'enroll'])->middleware('throttle:10,1')->name('test-series.enroll');
