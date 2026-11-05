@@ -59,6 +59,24 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::put('/subjects/{subject}',[QuestionBankController::class,'updateSubject'])->name('subjects.update');
   Route::post('/subjects/{subject}/topics',[QuestionBankController::class,'storeTopic'])->name('topics.store');
  });
+ Route::middleware('permission:courses.view')->group(function(){
+  Route::get('/courses',[CourseManagementController::class,'index'])->name('courses.index');
+  Route::get('/courses/{course}/builder',[CourseManagementController::class,'builder'])->name('courses.builder');
+ });
+ Route::middleware('permission:courses.manage')->group(function(){
+  Route::post('/courses',[CourseManagementController::class,'store'])->name('courses.store');
+  Route::put('/courses/{course}',[CourseManagementController::class,'update'])->name('courses.update');
+  Route::patch('/courses/{course}/status',[CourseManagementController::class,'updateStatus'])->name('courses.status');
+ });
+ Route::middleware('permission:lessons.manage')->group(function(){
+  Route::post('/courses/{course}/sections',[CourseManagementController::class,'storeSection'])->name('courses.sections.store');
+  Route::put('/courses/{course}/sections/{section}',[CourseManagementController::class,'updateSection'])->name('courses.sections.update');
+  Route::post('/courses/{course}/sections/{section}/chapters',[CourseManagementController::class,'storeChapter'])->name('courses.chapters.store');
+  Route::put('/courses/{course}/chapters/{chapter}',[CourseManagementController::class,'updateChapter'])->name('courses.chapters.update');
+  Route::post('/courses/{course}/chapters/{chapter}/lessons',[CourseManagementController::class,'storeLesson'])->name('courses.lessons.store');
+  Route::put('/courses/{course}/lessons/{lesson}',[CourseManagementController::class,'updateLesson'])->name('courses.lessons.update');
+  Route::post('/courses/{course}/lessons/{lesson}/resources',[CourseManagementController::class,'storeResource'])->name('courses.lessons.resources.store');
+ });
  Route::middleware('permission:tests.manage')->group(function(){
   Route::get('/payments',[PaymentController::class,'adminIndex'])->name('payments.index');
   Route::get('/exams',[ExamManagementController::class,'index'])->name('exams.index');
@@ -74,6 +92,14 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  });
 });
 Route::middleware(['auth','active','role:student'])->prefix('student')->name('student.')->group(function(){
+ Route::middleware('permission:courses.view')->group(function(){
+  Route::get('/courses',[CourseController::class,'index'])->name('courses.index');
+  Route::get('/courses/{course:slug}',[CourseController::class,'show'])->name('courses.show');
+  Route::get('/courses/{course:slug}/lessons/{lesson}',[CourseController::class,'lesson'])->name('courses.lesson');
+  Route::post('/courses/{course:slug}/enroll',[CourseController::class,'enroll'])->middleware('throttle:10,1')->name('courses.enroll');
+  Route::post('/courses/{course:slug}/checkout',[PaymentController::class,'createCourseOrder'])->middleware('throttle:5,1')->name('courses.checkout');
+  Route::post('/courses/{course:slug}/lessons/{lesson}/complete',[CourseController::class,'complete'])->middleware('throttle:30,1')->name('courses.lessons.complete');
+ });
  Route::get('/payments',[PaymentController::class,'studentIndex'])->name('payments.index');
  Route::post('/test-series/{testSeries}/checkout',[PaymentController::class,'createOrder'])->middleware('throttle:5,1')->name('payments.create');
  Route::get('/payments/{payment}/checkout',[PaymentController::class,'checkout'])->name('payments.checkout');
