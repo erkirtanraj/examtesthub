@@ -41,7 +41,7 @@ function importCsv() { importForm.post('/admin/users/import', { forceFormData: t
 <div class="overflow-x-auto rounded-xl border bg-white">
 <table class="w-full text-left text-sm"><thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3">User</th><th class="p-3">Roles</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
 <tbody><tr v-for="user in users.data" :key="user.id" class="border-t">
-<td class="p-3"><div class="font-bold">{{ user.name }}</div><div class="text-xs text-slate-500">{{ user.email }}</div></td>
+<td class="p-3"><a :href="'/admin/users/' + user.id" class="font-bold text-indigo-700 hover:underline">{{ user.name }}</a><div class="text-xs text-slate-500">{{ user.email }}</div></td>
 <td class="p-3"><span v-for="role in user.roles" :key="role.id" class="mr-1 inline-block rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-700">{{ role.slug }}</span></td>
 <td class="p-3"><span :class="user.is_active ? 'text-emerald-700' : 'text-rose-700'">{{ user.is_active ? 'Active' : 'Inactive' }}</span></td>
 <td class="space-x-2 p-3"><button @click="edit(user)" class="font-semibold text-indigo-700">Edit</button><button @click="toggle(user)" :disabled="user.roles.some(r => r.slug === 'super-admin')" class="font-semibold text-rose-700 disabled:opacity-30">{{ user.is_active ? 'Deactivate' : 'Activate' }}</button></td>
