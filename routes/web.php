@@ -23,7 +23,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 Route::get('/', function () {
     $content = WebsiteContent::query()->where('is_published', true)->whereIn('type', ['home', 'menu', 'footer', 'contact'])->orderBy('sort_order')->get();
-    return Inertia::render('Welcome', ['websiteContent' => $content]);
+    $sections = WebsiteContent::query()->where('type', 'home')->where('key', 'like', 'section.%')->where('is_published', true)->orderBy('sort_order')->orderBy('id')->get();
+    return Inertia::render('Welcome', ['websiteContent' => $content, 'homepageSections' => $sections]);
 })->name('home');
 Route::get('/courses',[PublicCatalogController::class,'index'])->defaults('type','courses')->name('public.courses');
 Route::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');
