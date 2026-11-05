@@ -29,7 +29,7 @@ Route::get('/courses',[PublicCatalogController::class,'index'])->defaults('type'
 Route::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');
 Route::get('/test-series',[PublicCatalogController::class,'index'])->defaults('type','test-series')->name('public.test-series');
 Route::get('/pages/{slug}', function (string $slug) {
-    $page = WebsiteContent::query()->where('type', 'page')->where('slug', $slug)->where('is_published', true)->firstOrFail();
+    $page = WebsiteContent::query()->whereIn('type', ['page', 'legal'])->where('slug', $slug)->where('is_published', true)->firstOrFail();
     return Inertia::render('Public/Page', ['page' => ['title' => $page->title, 'content' => $page->content]]);
 })->name('public.page');
 Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);$user=request()->user();if($user&&(!$user->hasRole('student')||StudentProfileSetting::current()->allow_language_edit))$user->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
