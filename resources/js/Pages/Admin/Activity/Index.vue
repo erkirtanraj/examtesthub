@@ -1,0 +1,5 @@
+<script setup>
+import PortalLayout from '../../../Layouts/PortalLayout.vue';
+defineProps({logs:Object});
+</script>
+<template><PortalLayout portal="admin" title="Audit activity" subtitle="Review administrative changes and account activity."><div class="overflow-x-auto rounded-xl border bg-white"><table class="w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-3">When</th><th class="p-3">Actor</th><th class="p-3">Action</th><th class="p-3">Subject</th><th class="p-3">IP</th></tr></thead><tbody><tr v-for="log in logs.data" :key="log.id" class="border-t"><td class="whitespace-nowrap p-3">{{new Date(log.created_at).toLocaleString()}}</td><td class="p-3">{{log.actor?.name || 'System'}}</td><td class="p-3 font-semibold">{{log.action}}</td><td class="p-3">{{log.subject?.email || (log.metadata?.slug || log.metadata?.role_id || '—')}}</td><td class="p-3 font-mono text-xs">{{log.ip_address}}</td></tr></tbody></table><div class="p-3 text-xs text-slate-500">{{logs.total}} events · Page {{logs.current_page}} of {{logs.last_page}}</div></div></PortalLayout></template>
