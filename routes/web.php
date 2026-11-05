@@ -1,7 +1,9 @@
 <?php
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\CourseManagementController;
+use App\Http\Controllers\Admin\StudyMaterialController as AdminStudyMaterialController;
 use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\StudyMaterialController as StudentStudyMaterialController;
 use App\Http\Controllers\Admin\ExamManagementController;
 use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\TestSeriesController as AdminTestSeriesController;
@@ -80,6 +82,13 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::put('/courses/{course}/lessons/{lesson}',[CourseManagementController::class,'updateLesson'])->name('courses.lessons.update');
   Route::post('/courses/{course}/lessons/{lesson}/resources',[CourseManagementController::class,'storeResource'])->name('courses.lessons.resources.store');
  });
+ Route::middleware('permission:materials.manage')->group(function(){
+  Route::get('/materials',[AdminStudyMaterialController::class,'index'])->name('materials.index');
+  Route::post('/materials',[AdminStudyMaterialController::class,'store'])->name('materials.store');
+  Route::post('/materials/{studyMaterial}',[AdminStudyMaterialController::class,'update'])->name('materials.update');
+  Route::patch('/materials/{studyMaterial}/status',[AdminStudyMaterialController::class,'updateStatus'])->name('materials.status');
+  Route::delete('/materials/{studyMaterial}',[AdminStudyMaterialController::class,'destroy'])->name('materials.destroy');
+ });
  Route::middleware('permission:tests.manage')->group(function(){
   Route::get('/payments',[PaymentController::class,'adminIndex'])->name('payments.index');
   Route::get('/exams',[ExamManagementController::class,'index'])->name('exams.index');
@@ -104,6 +113,10 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
   Route::post('/courses/{course:slug}/enroll',[CourseController::class,'enroll'])->middleware('throttle:10,1')->name('courses.enroll');
   Route::post('/courses/{course:slug}/checkout',[PaymentController::class,'createCourseOrder'])->middleware('throttle:5,1')->name('courses.checkout');
   Route::post('/courses/{course:slug}/lessons/{lesson}/complete',[CourseController::class,'complete'])->middleware('throttle:30,1')->name('courses.lessons.complete');
+ });
+ Route::middleware('permission:courses.view')->group(function(){
+  Route::get('/materials',[StudentStudyMaterialController::class,'index'])->name('materials.index');
+  Route::get('/materials/{studyMaterial}/download',[StudentStudyMaterialController::class,'download'])->name('materials.download');
  });
  Route::get('/payments',[PaymentController::class,'studentIndex'])->name('payments.index');
  Route::post('/test-series/{testSeries}/checkout',[PaymentController::class,'createOrder'])->middleware('throttle:5,1')->name('payments.create');
