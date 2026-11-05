@@ -19,7 +19,7 @@ class ReportsController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->validate([
-            'days' => ['nullable', 'integer', 'in:7,30,90,365'],
+            'days' => ['nullable', 'integer', 'in:7,30,90'],
         ]);
 
         $days = (int) ($filters['days'] ?? 30);
@@ -87,7 +87,7 @@ class ReportsController extends Controller
             $day = $cursor->toDateString();
             $trend[] = [
                 'date' => $day,
-                'label' => $cursor->format($days <= 30 ? 'd M' : 'd M'),
+                'label' => $cursor->format('d M'),
                 'attempts' => (int) data_get($attemptTrendRows->get($day), 'attempts', 0),
                 'average_percentage' => round((float) data_get($attemptTrendRows->get($day), 'average_percentage', 0), 1),
                 'revenue' => round((float) data_get($paymentTrendRows->get($day), 'revenue', 0), 2),
