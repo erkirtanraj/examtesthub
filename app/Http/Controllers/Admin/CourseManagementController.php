@@ -175,7 +175,11 @@ class CourseManagementController extends Controller
             'duration_minutes' => ['nullable','integer','min:0','max:65535'],
             'status' => ['required', Rule::in(['draft','published'])], 'position' => ['required','integer','min:1'],
         ]);
-        if ($data['type'] === 'video') abort_if(blank($data['video_url'] ?? null), 422, 'Video URL is required for video lessons.');
+        if ($data['type'] === 'video') {
+            abort_if(blank($data['video_url'] ?? null), 422, 'Video URL is required for video lessons.');
+            $host = strtolower((string) parse_url($data['video_url'], PHP_URL_HOST));
+            abort_unless(in_array($host, ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'www.vimeo.com', 'player.vimeo.com'], true), 422, 'Use a supported YouTube or Vimeo video URL.');
+        }
         if ($data['type'] === 'text') abort_if(blank($data['content'] ?? null), 422, 'Lesson content is required for text lessons.');
         $lesson->update($data);
         return back()->with('success', 'Lesson updated.');
