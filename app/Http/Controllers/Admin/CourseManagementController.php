@@ -101,6 +101,14 @@ class CourseManagementController extends Controller
         return Inertia::render('Admin/Courses/Builder', ['course' => $course]);
     }
 
+    public function enrollments(Course $course): Response
+    {
+        return Inertia::render('Admin/Courses/Enrollments', [
+            'course' => $course->only(['id', 'title', 'title_hi', 'access_type', 'price']),
+            'enrollments' => $course->enrollments()->with('user:id,name,email')->withCount('progress')->latest()->paginate(30),
+        ]);
+    }
+
     public function storeSection(Request $request, Course $course): RedirectResponse
     {
         $data = $request->validate(['title' => ['required','string','max:180'], 'title_hi' => ['nullable','string','max:180'], 'description' => ['nullable','string','max:5000'], 'description_hi' => ['nullable','string','max:5000']]);
