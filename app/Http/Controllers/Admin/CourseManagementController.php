@@ -76,7 +76,8 @@ class CourseManagementController extends Controller
         ]);
         if ($data['access_type'] === 'free') $data['price'] = 0;
         if ($data['status'] === 'published') {
-            $existingCourse = $request->route('course');\n            abort_if(! $existingCourse || ! $existingCourse->sections()->whereHas('chapters.lessons', fn ($q) => $q->where('status', 'published'))->exists(), 422, 'Add at least one published lesson before publishing a course.');
+            $existingCourse = $request->route('course');
+            abort_if(! $existingCourse || ! $existingCourse->sections()->whereHas('chapters.lessons', fn ($q) => $q->where('status', 'published'))->exists(), 422, 'Add at least one published lesson before publishing a course.');
             $data['published_at'] = now();
         }
         return $data;
@@ -143,7 +144,11 @@ class CourseManagementController extends Controller
             'duration_minutes' => ['nullable','integer','min:0','max:65535'],
             'status' => ['required', Rule::in(['draft','published'])],
         ]);
-        if ($data['type'] === 'video') {\n            abort_if(blank($data['video_url'] ?? null), 422, 'Video URL is required for video lessons.');\n            $host = strtolower((string) parse_url($data['video_url'], PHP_URL_HOST));\n            abort_unless(in_array($host, ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'www.vimeo.com', 'player.vimeo.com'], true), 422, 'Use a supported YouTube or Vimeo video URL.');\n        }
+        if ($data['type'] === 'video') {
+            abort_if(blank($data['video_url'] ?? null), 422, 'Video URL is required for video lessons.');
+            $host = strtolower((string) parse_url($data['video_url'], PHP_URL_HOST));
+            abort_unless(in_array($host, ['youtube.com', 'www.youtube.com', 'youtu.be', 'vimeo.com', 'www.vimeo.com', 'player.vimeo.com'], true), 422, 'Use a supported YouTube or Vimeo video URL.');
+        }
         if ($data['type'] === 'text') abort_if(blank($data['content'] ?? null), 422, 'Lesson content is required for text lessons.');
         $data['position'] = (int) $chapter->lessons()->max('position') + 1;
         $chapter->lessons()->create($data);
