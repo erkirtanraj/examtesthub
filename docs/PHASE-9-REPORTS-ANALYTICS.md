@@ -37,7 +37,7 @@ All attempt queries are scoped by the authenticated user ID. The page does not r
 ## Metric definitions and caveats
 
 - An in-progress attempt is excluded from performance and attempt reports.
-- Score percentage is calculated as score / total_marks × 100. Negative-marking scores may therefore be negative or exceed neither a guaranteed pass threshold nor a grade.
+- Score percentage is calculated as score / total_marks × 100. Negative-marking scores may therefore be negative and should not be interpreted as a pass/fail grade.
 - No pass/fail classification is added because the current exam schema does not store an exam-specific passing threshold.
 - Revenue reports use captured payment records with verified_at. Pending, failed or unverified payments are excluded.
 - Student total is a lifetime count of accounts with the student role; new registrations are period-scoped.
