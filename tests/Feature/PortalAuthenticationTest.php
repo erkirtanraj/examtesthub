@@ -12,6 +12,12 @@ class PortalAuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutVite();
+    }
+
     public function test_student_can_register_and_is_assigned_student_role(): void
     {
         $response = $this->post('/register', [
