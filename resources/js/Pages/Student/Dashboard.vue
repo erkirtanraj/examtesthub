@@ -20,7 +20,7 @@ const actions = computed(() => hi.value ? [
     { title: 'My test series', detail: 'Continue with your enrolled tests and packages', href: '/student/my-test-series', icon: ClipboardCheck, tone: 'violet' },
     { title: 'Available exams', detail: 'Find and start your next assessment', href: '/student/exams', icon: BookOpen, tone: 'sky' },
     { title: 'Course catalogue', detail: 'Learn with structured lessons and resources', href: '/student/courses', icon: GraduationCap, tone: 'emerald' },
-    { title: 'My performance', detail: 'Review exam results and learning progress', href: '/student/performance', icon: ChartNoAxesCombined, tone: 'amber' },
+    { title: 'My performance', detail: 'Review exam results and learning progress', href: '/student/performance', icon: TrendingUp, tone: 'amber' },
     { title: 'Study materials', detail: 'Open notes and downloadable PDFs', href: '/student/materials', icon: FileText, tone: 'rose' },
     { title: 'Payment history', detail: 'Review your transactions and receipts', href: '/student/payments', icon: CreditCard, tone: 'slate' },
 ]);
