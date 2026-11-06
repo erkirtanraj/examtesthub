@@ -34,6 +34,10 @@ function formatSize(bytes) {
 </script>
 
 <template>
+<Head :title="page.props.seo?.title || config.title + ' | ExamTestHub'">
+    <meta head-key="description" name="description" :content="page.props.seo?.description || ''" />
+    <link head-key="canonical" rel="canonical" :href="page.props.seo?.canonical || ''" />
+</Head>
 <main class="min-h-screen bg-slate-50 text-slate-900">
     <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-8">
