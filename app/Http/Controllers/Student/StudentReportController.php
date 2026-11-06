@@ -83,7 +83,7 @@ class StudentReportController extends Controller
                         ->select('user_id')
                         ->selectRaw('MAX(score * 100.0 / total_marks) as best_percentage')
                         ->groupBy('user_id');
-                    $cohortSize = (clone $bestByStudent)->count();
+                    $cohortSize = DB::query()->fromSub(clone $bestByStudent, 'cohort')->count();
                     $betterCount = DB::query()->fromSub(clone $bestByStudent, 'cohort')
                         ->where('best_percentage', '>', $percentage)
                         ->count();
