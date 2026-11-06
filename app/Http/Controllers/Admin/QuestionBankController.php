@@ -177,6 +177,25 @@ class QuestionBankController extends Controller
         return back()->with('success', 'Topic created.');
     }
 
+    public function updateTopic(Request $request, Subject $subject, Topic $topic): RedirectResponse
+    {
+        abort_unless($topic->subject_id === $subject->id, 404);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'description' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $base = Str::slug($data['name']);
+        $slug = $base;
+        $suffix = 2;
+        while ($subject->topics()->where('slug', $slug)->where('id', '!=', $topic->id)->exists()) {
+            $slug = $base.'-'.$suffix++;
+        }
+        $topic->update([...$data, 'slug' => $slug]);
+        $this->audit($request, 'topic.updated', ['topic_id' => $topic->id, 'subject_id' => $subject->id]);
+
+        return back()->with('success', 'Topic updated.');
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $filename = 'examtesthub-questions-'.now()->format('Ymd-His').'.csv';

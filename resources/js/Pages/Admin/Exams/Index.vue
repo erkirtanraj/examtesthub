@@ -2,11 +2,13 @@
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
+import BulkSelection from '../../../Components/Admin/BulkSelection.vue';
 
 const props = defineProps({ exams: Object, questions: Array });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const editing = ref(null);
+const bulkSelection = ref(null);
 const blank = () => ({ title: '', description: '', instructions: '', duration_minutes: 60, max_attempts: 1, starts_at: '', ends_at: '', shuffle_questions: false, shuffle_options: false, status: 'draft', question_ids: [] });
 const form = useForm(blank());
 function reset() { editing.value = null; form.reset(); form.clearErrors(); }
@@ -32,18 +34,19 @@ function changeStatus(exam, status) {
 <PortalLayout portal="admin" :title="hi ? 'परीक्षा प्रबंधन' : 'Exam management'" :subtitle="hi ? 'प्रश्न चुनें, समय निर्धारित करें और परीक्षा प्रकाशित करें।' : 'Build exams from approved questions, configure timing and manage publication.'">
 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
 <section class="space-y-4">
+<BulkSelection ref="bulkSelection" :items="exams.data" resource="exams" storage-key="admin-bulk-exams" />
 <div class="overflow-x-auto rounded-xl border bg-white">
 <table class="w-full text-left text-sm">
-<thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3">Exam</th><th class="p-3">Questions</th><th class="p-3">Duration</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
+<thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="w-10 p-3"><span class="sr-only">Select</span></th><th class="p-3">Exam</th><th class="p-3">Questions</th><th class="p-3">Duration</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
 <tbody>
 <tr v-for="exam in exams.data" :key="exam.id" class="border-t">
-<td class="p-3"><p class="font-bold">{{ exam.title }}</p><p class="text-xs text-slate-400">{{ exam.slug }}</p></td>
+<td class="p-3"><input type="checkbox" :checked="bulkSelection?.isSelected(exam.id)" @change="bulkSelection?.toggle(exam.id, $event.target.checked)" aria-label="Select exam" class="rounded border-slate-300 text-indigo-600"></td><td class="p-3"><p class="font-bold">{{ exam.title }}</p><p class="text-xs text-slate-400">{{ exam.slug }}</p></td>
 <td class="p-3">{{ exam.questions_count }}</td>
 <td class="p-3">{{ exam.duration_minutes }} min</td>
 <td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs capitalize">{{ exam.status }}</span></td>
 <td class="space-y-1 p-3"><button @click="edit(exam)" class="mr-2 font-semibold text-indigo-700">Edit</button><select :value="exam.status" @change="changeStatus(exam, $event.target.value)" class="rounded border p-1 text-xs"><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="published">Published</option><option value="archived">Archived</option></select></td>
 </tr>
-<tr v-if="!exams.data.length"><td colspan="5" class="p-8 text-center text-slate-500">No exams created yet.</td></tr>
+<tr v-if="!exams.data.length"><td colspan="6" class="p-8 text-center text-slate-500">No exams created yet.</td></tr>
 </tbody></table></div>
 <div class="flex flex-wrap items-center gap-2 text-sm"><span class="mr-auto text-slate-500">{{ exams.total }} exams</span><a v-for="link in exams.links" :key="link.label" :href="link.url || '#'" v-html="link.label" :class="['rounded border px-3 py-1', link.active ? 'bg-indigo-600 text-white' : 'bg-white', !link.url ? 'pointer-events-none opacity-40' : '']"/></div>
 <div class="rounded-xl border bg-white p-4"><h3 class="font-bold">Exam publishing rules</h3><ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600"><li>Only published questions can be selected.</li><li>Scheduled exams require both start and end time.</li><li>Exam end time must be later than start time.</li><li>At least one question is required before scheduling or publishing.</li><li>Archived exams are read-only.</li></ul></div>

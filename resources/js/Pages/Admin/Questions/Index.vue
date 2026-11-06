@@ -2,11 +2,13 @@
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
+import BulkSelection from '../../../Components/Admin/BulkSelection.vue';
 
 const props = defineProps({ questions: Object, subjects: Array, filters: Object });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const editing = ref(null);
+const bulkSelection = ref(null);
 const search = ref(props.filters?.search || '');
 const subjectFilter = ref(props.filters?.subject_id || '');
 const difficultyFilter = ref(props.filters?.difficulty || '');
@@ -62,18 +64,19 @@ function importCsv() { importForm.post('/admin/questions/import', { forceFormDat
         <select v-model="languageFilter" class="rounded-lg border px-3 py-2 text-sm"><option value="">All languages</option><option value="en">English</option><option value="hi">Hindi</option></select>
         <button @click="applyFilters" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Apply filters</button>
     </div>
+    <BulkSelection ref="bulkSelection" :items="questions.data" resource="questions" storage-key="admin-bulk-questions" />
     <div class="overflow-x-auto rounded-xl border bg-white">
         <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3">Question</th><th class="p-3">Subject / Topic</th><th class="p-3">Level</th><th class="p-3">Status</th><th class="p-3">Action</th></tr></thead>
+            <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="w-10 p-3"><span class="sr-only">Select</span></th><th class="p-3">Question</th><th class="p-3">Subject / Topic</th><th class="p-3">Level</th><th class="p-3">Status</th><th class="p-3">Action</th></tr></thead>
             <tbody>
                 <tr v-for="q in questions.data" :key="q.id" class="border-t align-top">
-                    <td class="max-w-md p-3"><p class="line-clamp-3 font-semibold text-slate-800">{{ q.prompt }}</p><p class="mt-1 text-xs text-slate-400">{{ q.type }} · {{ q.language }} · +{{ q.marks }} / -{{ q.negative_marks }}</p></td>
+                    <td class="p-3"><input type="checkbox" :checked="bulkSelection?.isSelected(q.id)" @change="bulkSelection?.toggle(q.id, $event.target.checked)" aria-label="Select question" class="rounded border-slate-300 text-indigo-600"></td><td class="max-w-md p-3"><p class="line-clamp-3 font-semibold text-slate-800">{{ q.prompt }}</p><p class="mt-1 text-xs text-slate-400">{{ q.type }} · {{ q.language }} · +{{ q.marks }} / -{{ q.negative_marks }}</p></td>
                     <td class="p-3">{{ q.subject?.name }}<div class="text-xs text-slate-500">{{ q.topic?.name || '—' }}</div></td>
                     <td class="p-3 capitalize">{{ q.difficulty }}</td>
                     <td class="p-3"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs">{{ q.status }}</span></td>
                     <td class="whitespace-nowrap p-3"><button @click="edit(q)" class="mr-2 font-semibold text-indigo-700">Edit</button><button @click="remove(q)" class="font-semibold text-rose-700">Delete</button></td>
                 </tr>
-                <tr v-if="!questions.data.length"><td colspan="5" class="p-8 text-center text-slate-500">No questions match these filters.</td></tr>
+                <tr v-if="!questions.data.length"><td colspan="6" class="p-8 text-center text-slate-500">No questions match these filters.</td></tr>
             </tbody>
         </table>
     </div>
