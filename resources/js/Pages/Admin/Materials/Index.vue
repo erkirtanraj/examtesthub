@@ -13,6 +13,7 @@ const props = defineProps({
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const editing = ref(null);
+const bulkSelection = ref(null);
 const currentFilters = ref({
     search: props.filters?.search || '',
     subject_id: props.filters?.subject_id || '',
@@ -117,7 +118,7 @@ function formatBytes(bytes) {
                     </div>
                 </form>
 
-<BulkSelection :items="materials.data" resource="materials" storage-key="admin-bulk-materials" label-key="title" />
+<BulkSelection ref="bulkSelection" :items="materials.data" resource="materials" storage-key="admin-bulk-materials" />
                 <div class="overflow-hidden rounded-2xl border bg-white">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b p-4">
                         <h2 class="font-extrabold">Material library</h2>
@@ -127,7 +128,7 @@ function formatBytes(bytes) {
                         <table class="w-full min-w-[720px] text-left text-sm">
                             <thead class="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th class="p-3">Material</th>
+                                    <th class="w-10 p-3"><span class="sr-only">Select</span></th><th class="p-3">Material</th>
                                     <th class="p-3">Subject / Course</th>
                                     <th class="p-3">Language</th>
                                     <th class="p-3">File size</th>
@@ -137,7 +138,7 @@ function formatBytes(bytes) {
                             </thead>
                             <tbody>
                                 <tr v-for="material in materials.data" :key="material.id" class="border-t align-top">
-                                    <td class="max-w-xs p-3">
+                                    <td class="p-3"><input type="checkbox" :checked="bulkSelection?.isSelected(material.id)" @change="bulkSelection?.toggle(material.id, $event.target.checked)" aria-label="Select material" class="rounded border-slate-300 text-indigo-600"></td><td class="max-w-xs p-3">
                                         <div class="font-bold">{{ material.title }}</div>
                                         <div v-if="material.title_hi" class="text-xs text-slate-500">{{ material.title_hi }}</div>
                                         <div class="mt-1 break-all text-xs text-slate-400">{{ material.original_name }}</div>
@@ -162,7 +163,7 @@ function formatBytes(bytes) {
                                     </td>
                                 </tr>
                                 <tr v-if="!materials.data.length">
-                                    <td colspan="6" class="p-8 text-center text-slate-500">No study materials found.</td>
+                                    <td colspan="7" class="p-8 text-center text-slate-500">No study materials found.</td>
                                 </tr>
                             </tbody>
                         </table>
