@@ -9,6 +9,7 @@ use App\Models\Permission;
 use App\Models\Question;
 use App\Models\Role;
 use App\Models\Subject;
+use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -89,6 +90,32 @@ class AdminBulkContentActionsTest extends TestCase
 
         $this->actingAs($manager)->post('/admin/bulk-delete/questions', ['ids' => [$question->id]])->assertForbidden();
         $this->assertDatabaseHas('questions', ['id' => $question->id]);
+    }
+
+    public function test_admin_can_edit_a_topic_under_its_subject(): void
+    {
+        $admin = $this->user('super-admin', 'bulk-topic-edit@example.test');
+        $subject = Subject::create(['name' => 'Mathematics', 'slug' => 'mathematics']);
+        $topic = $subject->topics()->create(['name' => 'Algebra', 'slug' => 'algebra']);
+
+        $this->actingAs($admin)->put('/admin/subjects/'.$subject->id.'/topics/'.$topic->id, [
+            'name' => 'Basic Algebra',
+            'description' => 'Foundational algebra topics.',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('topics', ['id' => $topic->id, 'name' => 'Basic Algebra', 'slug' => 'basic-algebra']);
+    }
+
+    public function test_bulk_delete_protects_topics_assigned_to_questions(): void
+    {
+        $admin = $this->user('super-admin', 'bulk-topic-delete@example.test');
+        $subject = Subject::create(['name' => 'Geography', 'slug' => 'geography']);
+        $topic = $subject->topics()->create(['name' => 'Rivers', 'slug' => 'rivers']);
+        $question = $this->question($admin, $subject, 'Name a major river.');
+        $question->update(['topic_id' => $topic->id]);
+
+        $this->actingAs($admin)->post('/admin/bulk-delete/topics', ['ids' => [$topic->id]])->assertUnprocessable();
+        $this->assertDatabaseHas('topics', ['id' => $topic->id]);
     }
 
     public function test_bulk_delete_protects_courses_with_enrollments(): void
