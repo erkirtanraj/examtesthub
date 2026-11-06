@@ -12,6 +12,7 @@ use App\Models\StudyMaterial;
 use App\Models\Subject;
 use App\Models\TestSeries;
 use App\Models\TestSeriesEnrollment;
+use App\Models\Topic;
 use App\Models\WebsiteContent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class AdminBulkContentController extends Controller
         'exams' => ['permission' => 'tests.manage', 'table' => 'exams'],
         'questions' => ['permission' => 'questions.manage', 'table' => 'questions'],
         'subjects' => ['permission' => 'questions.manage', 'table' => 'subjects'],
+        'topics' => ['permission' => 'questions.manage', 'table' => 'topics'],
         'materials' => ['permission' => 'materials.manage', 'table' => 'study_materials'],
         'test-series' => ['permission' => 'tests.manage', 'table' => 'test_series'],
         'website-content' => ['permission' => 'settings.manage', 'table' => 'website_contents'],
@@ -76,6 +78,7 @@ class AdminBulkContentController extends Controller
             'exams' => Exam::whereIn('id', $ids)->get(),
             'questions' => Question::whereIn('id', $ids)->get(),
             'subjects' => Subject::whereIn('id', $ids)->get(),
+            'topics' => Topic::whereIn('id', $ids)->get(),
             'materials' => StudyMaterial::whereIn('id', $ids)->get(),
             'test-series' => TestSeries::whereIn('id', $ids)->get(),
             'website-content' => WebsiteContent::whereIn('id', $ids)->get(),
@@ -90,6 +93,7 @@ class AdminBulkContentController extends Controller
             'exams' => Exam::whereIn('id', $ids)->where(fn ($q) => $q->whereHas('attempts')->orWhereHas('testSeries'))->exists(),
             'questions' => Question::whereIn('id', $ids)->whereHas('exams')->exists() || DB::table('exam_attempt_answers')->whereIn('question_id', $ids)->exists(),
             'subjects' => Question::whereIn('subject_id', $ids)->exists() || StudyMaterial::whereIn('subject_id', $ids)->exists(),
+            'topics' => Question::whereIn('topic_id', $ids)->exists(),
             'test-series' => TestSeriesEnrollment::whereIn('test_series_id', $ids)->exists(),
             default => false,
         };
@@ -98,6 +102,7 @@ class AdminBulkContentController extends Controller
             'exams' => 'Selected exams have attempts or belong to a test series. Remove those dependencies first.',
             'questions' => 'Selected questions are used by an exam. Remove them from every exam before deleting.',
             'subjects' => 'Selected subjects still contain questions or study materials. Move or delete those records first.',
+            'topics' => 'Selected topics are assigned to questions. Move or remove those questions before deleting the topics.',
             'test-series' => 'Selected test series have enrollments. Archive them instead of deleting.',
             default => 'One or more selected records cannot be deleted.',
         });
