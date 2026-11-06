@@ -5,7 +5,7 @@ use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Question;
 use App\Models\User;
-use App\Notifications\PlatformNotification;
+use App\Services\NotificationDispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -142,7 +142,7 @@ class StudentExamController extends Controller {
    $user = User::find($attempt->user_id);
    $preferences = $user?->notification_preferences ?? [];
    if ($user && ($preferences['exam_results'] ?? true)) {
-    $user->notify(new PlatformNotification('Exam result available', 'Your exam has been submitted and your result is ready to view.', '/student/attempts/'.$attempt->id.'/result', 'exam_result'));
+    NotificationDispatcher::send($user, 'Exam result available', 'Your exam has been submitted and your result is ready to view.', '/student/attempts/'.$attempt->id.'/result', 'exam_result');
    }
   }
  }
