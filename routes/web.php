@@ -14,11 +14,44 @@ use App\Http\Controllers\Admin\QuestionBankController;
 use App\Http\Controllers\Admin\TestSeriesController as AdminTestSeriesController;
 use App\Http\Controllers\Auth\PortalAuthenticationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PublicCatalogController;
+use App\Http\Controllers\PublicSitemapController;
+use App\Http\Controllers\Admin\WebsiteContentController;
+use App\Models\WebsiteContent;
 use App\Http\Controllers\Student\StudentExamController;
 use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-Route::get('/',fn()=>Inertia::render('Welcome'))->name('home');
+Route::get('/sitemap.xml', PublicSitemapController::class)->name('sitemap');
+Route::get('/', function () {
+    $content = WebsiteContent::query()->where('is_published', true)->whereIn('type', ['home', 'menu', 'footer', 'contact'])->orderBy('sort_order')->get();
+    $sections = WebsiteContent::query()->where('type', 'home')->where('key', 'like', 'section.%')->where('is_published', true)->orderBy('sort_order')->orderBy('id')->get();
+    return Inertia::render('Welcome', [
+        'websiteContent' => $content,
+        'homepageSections' => $sections,
+        'seo' => [
+            'title' => 'ExamTestHub - Learn, Practice and Achieve',
+            'description' => 'Prepare for competitive exams with structured courses, online test series and study materials on ExamTestHub.',
+            'canonical' => route('home'),
+        ],
+    ]);
+})->name('home');
+Route::get('/courses',[PublicCatalogController::class,'index'])->defaults('type','courses')->name('public.courses');
+Route::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');
+Route::get('/test-series',[PublicCatalogController::class,'index'])->defaults('type','test-series')->name('public.test-series');
+Route::get('/pages/{slug}', function (string $slug) {
+    $page = WebsiteContent::query()->whereIn('type', ['page', 'legal'])->where('slug', $slug)->where('is_published', true)->firstOrFail();
+    $localizedContent = $page->content['en'] ?? $page->content;
+    $description = is_string($localizedContent) ? trim(strip_tags($localizedContent)) : '';
+    return Inertia::render('Public/Page', [
+        'page' => ['title' => $page->title, 'content' => $page->content],
+        'seo' => [
+            'title' => $page->title . ' | ExamTestHub',
+            'description' => mb_substr($description ?: ('Read ' . $page->title . ' on ExamTestHub.'), 0, 160),
+            'canonical' => route('public.page', ['slug' => $page->slug]),
+        ],
+    ]);
+})->name('public.page');
 Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);$user=request()->user();if($user&&(!$user->hasRole('student')||StudentProfileSetting::current()->allow_language_edit))$user->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
 Route::middleware('guest')->group(function(){
  Route::get('/admin/login',[PortalAuthenticationController::class,'adminLoginPage'])->name('admin.login');
@@ -34,6 +67,11 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  Route::get('/dashboard',fn()=>Inertia::render('Admin/Dashboard'))->name('dashboard');
  Route::get('/reports',[ReportsController::class,'index'])->middleware('permission:reports.view')->name('reports.index');
  Route::get('/settings/student-profile',[StudentProfileSettingsController::class,'index'])->middleware('permission:settings.manage')->name('settings.student-profile');
+ Route::get('/settings/website-content',[WebsiteContentController::class,'index'])->middleware('permission:settings.manage')->name('settings.website-content');
+ Route::put('/settings/website-content/layout',[WebsiteContentController::class,'saveLayout'])->middleware('permission:settings.manage')->name('settings.website-content.layout');
+ Route::post('/settings/website-content',[WebsiteContentController::class,'store'])->middleware('permission:settings.manage')->name('settings.website-content.store');
+ Route::put('/settings/website-content/{websiteContent}',[WebsiteContentController::class,'update'])->middleware('permission:settings.manage')->name('settings.website-content.update');
+ Route::delete('/settings/website-content/{websiteContent}',[WebsiteContentController::class,'destroy'])->middleware('permission:settings.manage')->name('settings.website-content.destroy');
  Route::put('/settings/student-profile',[StudentProfileSettingsController::class,'update'])->middleware('permission:settings.manage')->name('settings.student-profile.update');
  Route::middleware('permission:users.view')->group(function(){
   Route::get('/users',[AdminUserManagementController::class,'users'])->name('users.index');
