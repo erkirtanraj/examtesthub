@@ -28,7 +28,8 @@ class Coupon extends Model
 
     public function course(): BelongsTo { return $this->belongsTo(Course::class); }
     public function testSeries(): BelongsTo { return $this->belongsTo(TestSeries::class); }
-    public function redemptions(): HasMany { return $this->hasMany(CouponRedemption::class); }\n    public function reservations(): HasMany { return $this->hasMany(CouponReservation::class); }
+    public function redemptions(): HasMany { return $this->hasMany(CouponRedemption::class); }
+    public function reservations(): HasMany { return $this->hasMany(CouponReservation::class); }
 
     public function isCurrentlyValid(): bool
     {
