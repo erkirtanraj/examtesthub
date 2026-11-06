@@ -174,6 +174,12 @@ class StudentManagementController extends Controller
         ]);
     }
 
+    private function safeCsvValue(?string $value): string
+    {
+        $value = (string) $value;
+        return preg_match('/^[=+\\-@\\t\\r]/', $value) ? "'".$value : $value;
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $filters = $this->validatedFilters($request);
@@ -186,7 +192,7 @@ class StudentManagementController extends Controller
             $this->studentsQuery($filters)->chunk(500, function ($students) use ($out) {
                 foreach ($students as $student) {
                     fputcsv($out, [
-                        $student->id, $student->name, $student->email, $student->is_active ? 'active' : 'inactive',
+                        $student->id, $this->safeCsvValue($student->name), $this->safeCsvValue($student->email), $student->is_active ? 'active' : 'inactive',
                         (int) $student->submitted_attempts,
                         $student->average_percentage === null ? '' : round((float) $student->average_percentage, 1),
                         $student->last_exam_at, $student->created_at?->toISOString(),
