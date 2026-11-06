@@ -94,7 +94,7 @@ class PaymentGatewayTest extends TestCase
         $admin = $this->user('super-admin', 'coupon-admin@example.test');
         $student = $this->user('student', 'coupon-student@example.test');
         $series = $this->paidSeries($admin);
-        \\App\\Models\\Coupon::create([
+        \App\Models\Coupon::create([
             'code' => 'SAVE20', 'discount_type' => 'percentage', 'discount_value' => 20,
             'minimum_amount' => 0, 'usage_limit' => 10, 'per_user_limit' => 1,
             'used_count' => 0, 'applies_to' => 'test_series', 'test_series_id' => $series->id,
