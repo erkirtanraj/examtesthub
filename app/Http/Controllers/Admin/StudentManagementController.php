@@ -151,8 +151,8 @@ class StudentManagementController extends Controller
             'student' => $user->only('id', 'name', 'email', 'preferred_locale', 'is_active', 'deactivated_at', 'created_at'),
             'summary' => [
                 'attempts' => (int) ($summary->attempts ?? 0),
-                'average_percentage' => round((float) ($summary->average_percentage ?? 0), 1),
-                'best_percentage' => round((float) ($summary->best_percentage ?? 0), 1),
+                'average_percentage' => $summary->average_percentage === null ? null : round((float) $summary->average_percentage, 1),
+                'best_percentage' => $summary->best_percentage === null ? null : round((float) $summary->best_percentage, 1),
                 'last_exam_at' => $summary->last_exam_at,
                 'inactive_days' => $summary->last_exam_at ? now()->parse($summary->last_exam_at)->diffInDays(now()) : null,
             ],
@@ -177,7 +177,7 @@ class StudentManagementController extends Controller
     private function safeCsvValue(?string $value): string
     {
         $value = (string) $value;
-        return preg_match('/^[=+\\-@\\t\\r]/', $value) ? "'".$value : $value;
+        return preg_match('/^[=+\\-@\\t\\r\\n]/', $value) ? "'".$value : $value;
     }
 
     public function export(Request $request): StreamedResponse
