@@ -4,6 +4,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Question;
+use App\Models\User;
+use App\Notifications\PlatformNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
