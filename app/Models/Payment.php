@@ -11,11 +11,12 @@ class Payment extends Model
         'test_series_enrollment_id', 'course_enrollment_id', 'user_id', 'provider', 'provider_order_id',
         'provider_payment_id', 'provider_refund_id', 'receipt', 'amount_paise', 'currency', 'status',
         'failure_code', 'failure_description', 'refund_reason', 'verified_at', 'refunded_at',
+        'coupon_id', 'coupon_code', 'subtotal_paise', 'discount_paise',
     ];
 
     protected function casts(): array
     {
-        return ['amount_paise' => 'integer', 'verified_at' => 'datetime', 'refunded_at' => 'datetime'];
+        return ['amount_paise' => 'integer', 'subtotal_paise' => 'integer', 'discount_paise' => 'integer', 'verified_at' => 'datetime', 'refunded_at' => 'datetime'];
     }
 
     public function enrollment(): BelongsTo
@@ -26,6 +27,11 @@ class Payment extends Model
     public function courseEnrollment(): BelongsTo
     {
         return $this->belongsTo(CourseEnrollment::class, 'course_enrollment_id');
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function user(): BelongsTo
