@@ -57,10 +57,52 @@ class StudentExamController extends Controller {
    'exam'=>['title'=>$exam->title,'instructions'=>$exam->instructions],'questions'=>$questions]);
  }
  public function saveAnswer(Request $request, ExamAttempt $attempt, Question $question) {
-  $this->owner($request,$attempt); $this->active($attempt);
-  abort_unless(in_array($question->id,$attempt->question_order,true),404);
-  $data=$request->validate(['answer'=>['nullable','array','max:20'],'answer.*'=>['nullable','string','max:2000'],'marked_for_review'=>['sometimes','boolean']]);
-  $attempt->answers()->updateOrCreate(['question_id'=>$question->id],['answer'=>$data['answer']??null,'marked_for_review'=>$data['marked_for_review']??false,'answered_at'=>!empty($data['answer'])?now():null]);
+  $data=$request->validate([
+   'answer'=>['nullable','array','max:20'],
+   'answer.*'=>['nullable','string','max:2000'],
+   'marked_for_review'=>['sometimes','boolean'],
+  ]);
+
+  $answer=array_values(array_filter($data['answer']??[],fn($value)=>$value!==null&&$value!==''));
+  $options=$question->options??[];
+  if(in_array($question->type,['single_choice','true_false'],true)){
+   abort_if(count($answer)>1,422,'This question accepts only one answer.');
+   foreach($answer as $choice) abort_unless(array_key_exists($choice,$options),422,'The selected option is invalid.');
+  }elseif($question->type==='multiple_choice'){
+   foreach($answer as $choice) abort_unless(array_key_exists($choice,$options),422,'One or more selected options are invalid.');
+  }elseif($question->type==='short_answer'){
+   abort_if(count($answer)>1,422,'This question accepts one text answer.');
+  }else{
+   abort(422,'Unsupported question type.');
+  }
+
+  $saved=DB::transaction(function()use($request,$attempt,$question,$data,$answer){
+   $locked=ExamAttempt::whereKey($attempt->id)->lockForUpdate()->firstOrFail();
+   $this->owner($request,$locked);
+   abort_unless(collect($locked->question_order??[])->contains(fn($id)=>(int)$id===$question->id),404);
+   abort_if($locked->status!=='in_progress',422,'Attempt already submitted.');
+
+   // Return from the transaction before grading: aborting inside this transaction
+   // would roll back the expiry submission as well.
+   if($locked->expires_at->isPast()) return false;
+
+   $locked->answers()->updateOrCreate(
+    ['question_id'=>$question->id],
+    [
+     'answer'=>count($answer)>0?$answer:null,
+     'marked_for_review'=>$data['marked_for_review']??false,
+     'answered_at'=>count($answer)>0?now():null,
+    ]
+   );
+
+   return true;
+  });
+
+  if(!$saved){
+   $this->grade($attempt);
+   abort(422,'Time expired; attempt submitted.');
+  }
+
   return back(303);
  }
  public function submit(Request $request, ExamAttempt $attempt) {
