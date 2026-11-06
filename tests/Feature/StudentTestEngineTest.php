@@ -58,4 +58,20 @@ class StudentTestEngineTest extends TestCase {
   $this->actingAs($student)->get('/student/attempts/'.$a->id)->assertRedirect('/student/attempts/'.$a->id.'/result');
   $this->assertDatabaseHas('exam_attempts',['id'=>$a->id,'status'=>'submitted']);
  }
+ public function test_student_cannot_save_an_option_that_does_not_exist(): void {
+  $admin=$this->user('super-admin','engine-invalid-admin@example.test');$student=$this->user('student','engine-invalid-student@example.test');$e=$this->exam($admin);
+  $this->actingAs($student)->post('/student/exams/'.$e->id.'/start');
+  $a=ExamAttempt::firstOrFail();$q=$e->questions()->first();
+  $this->actingAs($student)->put('/student/attempts/'.$a->id.'/answers/'.$q->id,['answer'=>['Z']])->assertStatus(422);
+  $this->assertDatabaseHas('exam_attempt_answers',['exam_attempt_id'=>$a->id,'question_id'=>$q->id,'answer'=>null]);
+ }
+ public function test_expired_attempt_cannot_accept_a_late_answer_and_is_submitted(): void {
+  $admin=$this->user('super-admin','engine-expired-admin@example.test');$student=$this->user('student','engine-expired-student@example.test');$e=$this->exam($admin);
+  $this->actingAs($student)->post('/student/exams/'.$e->id.'/start');
+  $a=ExamAttempt::firstOrFail();$q=$e->questions()->first();$a->update(['expires_at'=>now()->subSecond()]);
+  $this->actingAs($student)->put('/student/attempts/'.$a->id.'/answers/'.$q->id,['answer'=>['B']])->assertStatus(422);
+  $this->assertDatabaseHas('exam_attempts',['id'=>$a->id,'status'=>'submitted']);
+  $this->assertDatabaseHas('exam_attempt_answers',['exam_attempt_id'=>$a->id,'question_id'=>$q->id,'answer'=>null]);
+ }
+
 }
