@@ -50,7 +50,7 @@ class PaymentGatewayTest extends TestCase
         ]);
     }
 
-    private function paymentFor(User $student, TestSeries $series, string $status = 'pending'): Payment
+    private function paymentFor(User $student, TestSeries $series, string $status = 'pending', ?string $orderId = null): Payment
     {
         $enrollment = TestSeriesEnrollment::create([
             'test_series_id' => $series->id, 'user_id' => $student->id,
@@ -60,7 +60,7 @@ class PaymentGatewayTest extends TestCase
         return Payment::create([
             'test_series_enrollment_id' => $enrollment->id,
             'user_id' => $student->id,
-            'provider_order_id' => 'order_test_123',
+            'provider_order_id' => $orderId ?? 'order_test_123',
             'receipt' => 'receipt_'.uniqid(),
             'amount_paise' => 19900,
             'currency' => 'INR',
@@ -285,7 +285,7 @@ class PaymentGatewayTest extends TestCase
         $series = $this->paidSeries($admin);
         $captured = $this->paymentFor($student, $series, 'captured');
         $captured->update(['provider_payment_id' => 'pay_revenue_1', 'verified_at' => now()]);
-        $refunded = $this->paymentFor($studentTwo, $series, 'refunded');
+        $refunded = $this->paymentFor($studentTwo, $series, 'refunded', 'order_revenue_2');
         $refunded->update(['provider_payment_id' => 'pay_revenue_2', 'verified_at' => now(), 'refunded_at' => now()]);
 
         $response = $this->actingAs($admin)->get('/admin/payments')->assertOk();
