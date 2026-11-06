@@ -127,6 +127,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::post('/subjects',[QuestionBankController::class,'storeSubject'])->name('subjects.store');
   Route::put('/subjects/{subject}',[QuestionBankController::class,'updateSubject'])->name('subjects.update');
   Route::post('/subjects/{subject}/topics',[QuestionBankController::class,'storeTopic'])->name('topics.store');
+  Route::put('/subjects/{subject}/topics/{topic}',[QuestionBankController::class,'updateTopic'])->name('topics.update');
  });
  Route::middleware('permission:courses.view')->group(function(){
   Route::get('/courses',[CourseManagementController::class,'index'])->name('courses.index');
