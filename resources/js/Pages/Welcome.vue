@@ -174,7 +174,7 @@ const steps = computed(() => [
                         <a :href="sectionContent('hero').cta_primary_url || '/register'" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-brand-700">
                             {{ sectionContent('hero').cta_primary || copy.explore }} <ArrowRight :size="17" />
                         </a>
-                        <a :href="sectionContent('hero').cta_secondary_url || '/student/login'" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-extrabold text-slate-700 transition hover:border-indigo-200 hover:text-brand-700">{{ sectionContent('hero').cta_secondary || copy.browse }}</a>
+                        <a :href="sectionContent('hero').cta_secondary_url || '/test-series'" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-extrabold text-slate-700 transition hover:border-indigo-200 hover:text-brand-700">{{ sectionContent('hero').cta_secondary || copy.browse }}</a>
                     </div>
                     <div class="mt-8 flex items-center gap-2 text-sm font-medium text-slate-500">
                         <ShieldCheck :size="17" class="text-emerald-600" /> {{ copy.trust }}
