@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\StudyMaterialController as AdminStudyMaterialCont
 use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\CourseCertificateController;
 use App\Http\Controllers\Student\PerformanceController;
+use App\Http\Controllers\Student\StudentReportController;
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\Student\StudyMaterialController as StudentStudyMaterialController;
 use App\Http\Controllers\Admin\ExamManagementController;
@@ -182,6 +183,7 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
   Route::put('/profile/password',[StudentProfileController::class,'updatePassword'])->name('profile.password');
  });
  Route::get('/performance',[PerformanceController::class,'index'])->middleware('permission:results.view-own')->name('performance.index');
+ Route::get('/reports',[StudentReportController::class,'index'])->middleware('permission:results.view-own')->name('reports.index');
  Route::get('/test-series',[StudentTestSeriesController::class,'index'])->name('test-series.index');
  Route::get('/my-test-series',[StudentTestSeriesController::class,'mySeries'])->name('test-series.mine');
  Route::post('/test-series/{testSeries}/enroll',[StudentTestSeriesController::class,'enroll'])->middleware('throttle:10,1')->name('test-series.enroll');
