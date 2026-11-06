@@ -1,5 +1,7 @@
 <?php
 use App\Models\StudentProfileSetting;
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\StudentManagementController;
 use App\Http\Controllers\Admin\CourseManagementController;
