@@ -4,7 +4,7 @@ import { usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 import { Activity, BookOpen, GraduationCap, Trophy } from 'lucide-vue-next';
 
-const props = defineProps({ summary: Object, recent_attempts: Array });
+const props = defineProps({ summary: Object, recent_attempts: Array, course_progress: Array });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const chartAttempts = computed(() => [...props.recent_attempts].slice(0, 8).reverse());
@@ -30,6 +30,28 @@ function dateTime(value) {
                 <article class="rounded-2xl border bg-white p-4"><div class="flex items-center justify-between text-sm text-slate-500"><span>{{ hi ? 'सर्वश्रेष्ठ स्कोर' : 'Best score' }}</span><Trophy :size="18" class="text-amber-600"/></div><div class="mt-3 text-2xl font-extrabold tabular-nums">{{ percent(summary.best_percentage) }}</div></article>
                 <article class="rounded-2xl border bg-white p-4"><div class="flex items-center justify-between text-sm text-slate-500"><span>{{ hi ? 'मेरे कोर्स' : 'My courses' }}</span><BookOpen :size="18" class="text-indigo-600"/></div><div class="mt-3 text-2xl font-extrabold tabular-nums">{{ summary.course_enrollments }}</div></article>
                 <article class="rounded-2xl border bg-white p-4"><div class="flex items-center justify-between text-sm text-slate-500"><span>{{ hi ? 'टेस्ट सीरीज़' : 'Test series' }}</span><GraduationCap :size="18" class="text-indigo-600"/></div><div class="mt-3 text-2xl font-extrabold tabular-nums">{{ summary.series_enrollments }}</div></article>
+            </section>
+
+
+            <section class="overflow-hidden rounded-2xl border bg-white">
+                <div class="border-b p-4">
+                    <h2 class="font-extrabold">{{ hi ? 'मेरी कोर्स प्रगति' : 'My course progress' }}</h2>
+                    <p class="mt-1 text-xs text-slate-500">{{ hi ? 'प्रत्येक कोर्स में पूर्ण किए गए पाठ देखें।' : 'Track completed lessons across your active and completed courses.' }}</p>
+                </div>
+                <div class="grid gap-3 p-4 sm:grid-cols-2">
+                    <article v-for="course in course_progress" :key="course.id" class="rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0"><h3 class="truncate text-sm font-bold text-slate-900">{{ course.course }}</h3><p class="mt-1 text-xs text-slate-500">{{ course.completed_lessons }} / {{ course.total_lessons }} {{ hi ? 'पाठ पूर्ण' : 'lessons completed' }}</p></div>
+                            <span class="shrink-0 text-sm font-extrabold tabular-nums text-indigo-700">{{ percent(course.progress_percentage) }}</span>
+                        </div>
+                        <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-indigo-600 transition-all" :style="{ width: course.progress_percentage + '%' }"/></div>
+                        <div class="mt-3 flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-semibold capitalize text-slate-500">{{ course.status }}</span>
+                            <a v-if="course.slug" :href="'/student/courses/' + course.slug" class="text-xs font-bold text-indigo-700 hover:text-indigo-900">{{ hi ? 'कोर्स खोलें' : 'Open course' }} →</a>
+                        </div>
+                    </article>
+                    <p v-if="!course_progress?.length" class="rounded-xl bg-slate-50 p-6 text-center text-sm text-slate-500 sm:col-span-2">{{ hi ? 'आपने अभी किसी कोर्स में नामांकन नहीं किया है।' : 'You have not enrolled in a course yet. Explore the course catalogue to get started.' }}</p>
+                </div>
             </section>
 
             <section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
