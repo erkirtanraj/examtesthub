@@ -8,7 +8,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, Notifiable;
 
     protected $attributes = ['is_active' => true];
 
@@ -21,7 +21,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
-            'deactivated_at' => 'datetime',
+            'deactivated_at' => 'datetime',\n            'notification_preferences' => 'array',
         ];
     }
 
