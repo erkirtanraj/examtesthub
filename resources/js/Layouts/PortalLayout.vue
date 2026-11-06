@@ -81,7 +81,8 @@ const adminGroups = computed(() => [
         key: 'Administration', label: isHindi.value ? 'प्रशासन और सुरक्षा' : 'Administration & Security', icon: 'security',
         items: [
             { label: isHindi.value ? 'गतिविधि लॉग' : 'Audit Activity', href: '/admin/activity', permission: 'audit.view' },
-            { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/admin/profile', permission: 'profile.manage' },\n            { label: isHindi.value ? 'घोषणाएँ' : 'Announcements', href: '/admin/announcements', permission: 'settings.manage' },
+            { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/admin/profile', permission: 'profile.manage' },
+            { label: isHindi.value ? 'घोषणाएँ' : 'Announcements', href: '/admin/announcements', permission: 'settings.manage' },
         ],
     },
     {
@@ -94,7 +95,8 @@ const adminGroups = computed(() => [
 ]);
 
 const studentItems = computed(() => [
-    { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },\n    { label: isHindi.value ? 'सूचनाएँ' : 'Notifications', href: '/student/notifications', icon: 'notifications' },
+    { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
+    { label: isHindi.value ? 'सूचनाएँ' : 'Notifications', href: '/student/notifications', icon: 'notifications' },
     { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/student/profile', icon: 'profile', permission: 'profile.manage' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
