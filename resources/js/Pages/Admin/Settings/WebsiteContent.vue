@@ -9,6 +9,7 @@ const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const success = computed(() => page.props.flash?.success || '');
 const blocks = ref([]);
+const bulkSelection = ref(null);
 const saving = ref(false);
 
 const defaults = () => ({
@@ -108,12 +109,13 @@ function resetLayout() {
                 </div>
             </div>
 
-<BulkSelection :items="blocks" resource="website-content" storage-key="admin-bulk-website-content" label-key="title" />
+<BulkSelection ref="bulkSelection" :items="blocks" resource="website-content" storage-key="admin-bulk-website-content" />
             <div v-if="!blocks.length" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
                 {{ hi ? 'अभी कोई होमपेज सेक्शन नहीं है। कस्टम HTML ब्लॉक जोड़ें।' : 'No homepage sections found. Add a custom HTML block to get started.' }}
             </div>
 
             <article v-for="(block, index) in blocks" :key="block.id" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="px-4 pt-3"><input type="checkbox" :checked="bulkSelection?.isSelected(block.id)" @change="bulkSelection?.toggle(block.id, $event.target.checked)" :aria-label="'Select section ' + (block.title || block.key)" class="rounded border-slate-300 text-indigo-600"></div>
                 <div class="flex flex-wrap items-start gap-3 border-b border-slate-100 px-4 py-3">
                     <div class="flex w-7 shrink-0 flex-col items-center text-slate-500">
                         <button type="button" @click="move(index, -1)" :disabled="index === 0" class="text-lg leading-5 hover:text-slate-950 disabled:opacity-30" aria-label="Move up">▲</button>
