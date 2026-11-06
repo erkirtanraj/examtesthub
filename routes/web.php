@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\StudentProfileSettingsController;
 use App\Http\Controllers\Admin\StudyMaterialController as AdminStudyMaterialController;
 use App\Http\Controllers\Student\CourseController;
+use App\Http\Controllers\Student\CourseCertificateController;
 use App\Http\Controllers\Student\PerformanceController;
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\Student\StudyMaterialController as StudentStudyMaterialController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesContro
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 Route::get('/sitemap.xml', PublicSitemapController::class)->name('sitemap');
+Route::get('/certificates/verify/{certificate}', [CourseCertificateController::class, 'verify'])->name('certificates.verify');
 Route::get('/', function () {
     $content = WebsiteContent::query()->where('is_published', true)->whereIn('type', ['home', 'menu', 'footer', 'contact'])->orderBy('sort_order')->get();
     $sections = WebsiteContent::query()->where('type', 'home')->where('key', 'like', 'section.%')->where('is_published', true)->orderBy('sort_order')->orderBy('id')->get();
@@ -153,6 +155,7 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
  Route::middleware('permission:courses.view')->group(function(){
   Route::get('/courses',[CourseController::class,'index'])->name('courses.index');
   Route::get('/my-courses',[CourseController::class,'myCourses'])->name('courses.mine');
+  Route::get('/courses/{course:slug}/certificate',[CourseCertificateController::class,'show'])->name('courses.certificate');
   Route::get('/courses/{course:slug}',[CourseController::class,'show'])->name('courses.show');
   Route::get('/courses/{course:slug}/lessons/{lesson}',[CourseController::class,'lesson'])->name('courses.lesson');
   Route::get('/courses/{course:slug}/lessons/{lesson}/resources/{resource}',[CourseController::class,'downloadResource'])->name('courses.lessons.resources.download');
