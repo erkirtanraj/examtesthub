@@ -1,15 +1,15 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Course;
-use App\\Models\\CourseEnrollment;
-use App\\Models\\CourseLesson;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Inertia\\Inertia;
-use Inertia\\Response;
+use App\Http\Controllers\Controller;
+use App\Models\Course;
+use App\Models\CourseEnrollment;
+use App\Models\CourseLesson;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CourseAnalyticsController extends Controller
 {
@@ -75,7 +75,7 @@ class CourseAnalyticsController extends Controller
                 'enrolled_at' => $enrollment->enrolled_at?->toIso8601String(),
             ]);
 
-        $stalledEnrollments = DB::table('course_enrollments as ce')
+        $stalledQuery = DB::table('course_enrollments as ce')
             ->join('courses as c', 'c.id', '=', 'ce.course_id')
             ->join('users as u', 'u.id', '=', 'ce.user_id')
             ->leftJoinSub(
@@ -90,7 +90,10 @@ class CourseAnalyticsController extends Controller
             )
             ->where('ce.status', 'active')
             ->whereNotNull('ce.enrolled_at')
-            ->whereRaw('COALESCE(activity.last_activity_at, ce.enrolled_at) <= ?', [now()->subDays(7)])
+            ->whereRaw('COALESCE(activity.last_activity_at, ce.enrolled_at) <= ?', [now()->subDays(7)]);
+
+        $stalledCount = (clone $stalledQuery)->count();
+        $stalledEnrollments = (clone $stalledQuery)
             ->orderByRaw('COALESCE(activity.last_activity_at, ce.enrolled_at) ASC')
             ->limit(10)
             ->get([
@@ -115,7 +118,7 @@ class CourseAnalyticsController extends Controller
                 'active_enrollments' => $activeEnrollments,
                 'completed_enrollments' => $completedEnrollments,
                 'completion_rate' => $totalEnrollments > 0 ? round($completedEnrollments * 100 / $totalEnrollments, 1) : 0,
-                'stalled_enrollments' => $stalledEnrollments->count(),
+                'stalled_enrollments' => $stalledCount,
             ],
             'courses' => $courses,
             'recent_enrollments' => $recentEnrollments,
