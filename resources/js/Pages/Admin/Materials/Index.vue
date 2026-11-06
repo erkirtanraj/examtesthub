@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
+import BulkSelection from '../../../Components/Admin/BulkSelection.vue';
 
 const props = defineProps({
     materials: Object,
@@ -116,6 +117,7 @@ function formatBytes(bytes) {
                     </div>
                 </form>
 
+<BulkSelection :items="materials.data" resource="materials" storage-key="admin-bulk-materials" label-key="title" />
                 <div class="overflow-hidden rounded-2xl border bg-white">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b p-4">
                         <h2 class="font-extrabold">Material library</h2>
