@@ -34,7 +34,7 @@ function percent(value) { return value === null || value === undefined ? '—' :
 <button @click="apply" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">{{hi?'फ़िल्टर':'Apply'}}</button>
 <button @click="clear" class="rounded-xl border px-4 py-2.5 text-sm font-bold">{{hi?'रीसेट':'Reset'}}</button>
 </div>
-<div class="mt-3 flex flex-wrap items-center justify-between gap-2"><p class="text-xs text-slate-500">{{students.total}} {{hi?'विद्यार्थी':'students found'}}</p><a :href="'/admin/students/export?'+new URLSearchParams({search:search,status:status,activity:activity,per_page:perPage}).toString()" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold text-slate-700"><Download :size="15"/> {{hi?'CSV डाउनलोड':'Export CSV'}}</a></div>
+<div class="mt-3 flex flex-wrap items-center justify-between gap-2"><p class="text-xs text-slate-500">{{students.total}} {{hi?'विद्यार्थी':'students found'}}</p><a v-if="page.props.auth?.user?.permissions?.includes('users.export')" :href="'/admin/students/export?'+new URLSearchParams({search:search,status:status,activity:activity,per_page:perPage}).toString()" class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold text-slate-700"><Download :size="15"/> {{hi?'CSV डाउनलोड':'Export CSV'}}</a></div>
 </section>
 <section class="overflow-hidden rounded-2xl border bg-white">
 <div class="overflow-x-auto"><table class="w-full min-w-[850px] text-left text-sm">
