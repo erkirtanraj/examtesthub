@@ -44,7 +44,7 @@ Track each item as Not started, In progress, In review, Approved, or Merged. Upd
 
 | Order | Feature / phase | Reference | Status | Acceptance focus |
 |---:|---|---|---|---|
-| 1 | Coupon and discount management | Examforge + LMS_Quiz_Website | In progress (coupon schema, pricing service, payment fields, and admin CRUD UI/routes committed; checkout integration, redemption accounting, tests, and review pending) | Admin CRUD; percentage/fixed discounts; validity and usage limits; minimum spend; course/test-series scope; server-side checkout calculation; payment audit trail; atomic usage consumption; tests for invalid, expired, exhausted, scoped, and valid coupons |
+| 1 | Coupon and discount management | Examforge + LMS_Quiz_Website | In progress (coupon schema, pricing service, payment fields, admin CRUD UI/routes, and pricing tests committed; malformed route newline syntax corrected; checkout integration, atomic usage reservation/redemption, payment lifecycle tests, and review pending) | Admin CRUD; percentage/fixed discounts; validity and usage limits; minimum spend; course/test-series scope; server-side checkout calculation; payment audit trail; atomic usage consumption; tests for invalid, expired, exhausted, scoped, and valid coupons |
 | 2 | Student leaderboard and ranking | Examforge | Not started | Fair ranking rules, privacy controls, pagination, anti-abuse safeguards, tests |
 | 3 | Exam sections and advanced attempt controls, including pause/resume where permitted | Examforge | Not started | Server-authoritative timers and attempt state; safe resume rules; section navigation; auditability; tests |
 | 4 | Course/test-series bundles | LMS_Quiz_Website | Not started | Bundle catalogue, pricing, entitlements, purchase lifecycle, access checks |
