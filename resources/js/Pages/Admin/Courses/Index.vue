@@ -4,6 +4,7 @@ import { router, useForm, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 import BulkSelection from '../../../Components/Admin/BulkSelection.vue';
 defineProps({ courses: Object });
+const bulkSelection = ref(null);
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 const editing = ref(null);
@@ -16,16 +17,16 @@ function status(course,value){ if(confirm('Change course status to '+value+'?'))
 </script>
 <template>
 <PortalLayout portal="admin" :title="hi?'LMS कोर्स प्रबंधन':'LMS Course Management'" :subtitle="hi?'कोर्स, मूल्य, प्रकाशन और पाठ्यक्रम संरचना प्रबंधित करें।':'Create and manage bilingual courses, pricing, publication and learning content.'">
-<BulkSelection :items="courses.data" resource="courses" storage-key="admin-bulk-courses" label-key="title" />
+<BulkSelection ref="bulkSelection" :items="courses.data" resource="courses" storage-key="admin-bulk-courses" />
 <div class="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
 <section class="min-w-0 overflow-x-auto rounded-2xl border bg-white">
 <table class="w-full min-w-[680px] text-left text-sm">
-<thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3">Course</th><th class="p-3">Access</th><th class="p-3">Sections</th><th class="p-3">Students</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
+<thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="w-10 p-3"><span class="sr-only">Select</span></th><th class="p-3">Course</th><th class="p-3">Access</th><th class="p-3">Sections</th><th class="p-3">Students</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
 <tbody><tr v-for="course in courses.data" :key="course.id" class="border-t">
-<td class="p-3"><div class="font-bold">{{course.title}}</div><div class="text-xs text-slate-500">{{course.category}}</div></td>
+<td class="p-3"><input type="checkbox" :checked="bulkSelection?.isSelected(course.id)" @change="bulkSelection?.toggle(course.id, $event.target.checked)" aria-label="Select course" class="rounded border-slate-300 text-indigo-600"></td><td class="p-3"><div class="font-bold">{{course.title}}</div><div class="text-xs text-slate-500">{{course.category}}</div></td>
 <td class="p-3">{{course.access_type==='paid'?'₹ '+course.price:'Free'}}</td><td class="p-3">{{course.sections_count}}</td><td class="p-3">{{course.enrollments_count}}</td>
 <td class="p-3 capitalize">{{course.status}}</td><td class="p-3"><div class="flex flex-wrap gap-3"><button class="font-semibold text-indigo-700" @click="edit(course)">Edit</button><a class="font-semibold text-indigo-700" :href="'/admin/courses/'+course.id+'/builder'">Build content</a><a class="font-semibold text-indigo-700" :href="'/admin/courses/'+course.id+'/enrollments'">Enrollments</a><select :value="course.status" class="rounded border p-1" @change="status(course,$event.target.value)"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div></td>
-</tr><tr v-if="!courses.data.length"><td colspan="6" class="p-8 text-center text-slate-500">No courses created yet.</td></tr></tbody></table>
+</tr><tr v-if="!courses.data.length"><td colspan="7" class="p-8 text-center text-slate-500">No courses created yet.</td></tr></tbody></table>
 </section>
 <aside class="h-fit rounded-2xl border bg-white p-5">
 <h2 class="text-lg font-extrabold">{{editing?'Edit course':'Create course'}}</h2>
