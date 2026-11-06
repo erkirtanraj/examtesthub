@@ -207,4 +207,92 @@ class PaymentGatewayTest extends TestCase
         $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'pending']);
         $this->assertDatabaseHas('test_series_enrollments', ['id' => $payment->test_series_enrollment_id, 'status' => 'pending_payment']);
     }
+    public function test_admin_can_request_a_full_refund_and_processed_response_revokes_access(): void
+    {
+        $admin = $this->user('super-admin', 'refund-admin@example.test');
+        $student = $this->user('student', 'refund-student@example.test');
+        $series = $this->paidSeries($admin);
+        $payment = $this->paymentFor($student, $series, 'captured');
+        $payment->update(['provider_payment_id' => 'pay_refund_123', 'verified_at' => now()]);
+        $payment->enrollment()->update(['status' => 'active']);
+
+        Http::fake(['https://api.razorpay.com/v1/payments/pay_refund_123/refund' => Http::response([
+            'id' => 'rfnd_test_123', 'payment_id' => 'pay_refund_123',
+            'amount' => 19900, 'status' => 'processed',
+        ], 200)]);
+
+        $this->actingAs($admin)->from('/admin/payments')->post('/admin/payments/'.$payment->id.'/refund', [
+            'reason' => 'Duplicate payment reported by customer',
+        ])->assertRedirect('/admin/payments');
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id, 'status' => 'refunded',
+            'provider_refund_id' => 'rfnd_test_123',
+            'refund_reason' => 'Duplicate payment reported by customer',
+        ]);
+        $this->assertDatabaseHas('test_series_enrollments', [
+            'id' => $payment->test_series_enrollment_id, 'status' => 'refunded',
+        ]);
+    }
+
+    public function test_refund_processed_webhook_is_signed_idempotent_and_revokes_access(): void
+    {
+        $admin = $this->user('super-admin', 'refund-webhook-admin@example.test');
+        $student = $this->user('student', 'refund-webhook-student@example.test');
+        $series = $this->paidSeries($admin);
+        $payment = $this->paymentFor($student, $series, 'refund_pending');
+        $payment->update(['provider_payment_id' => 'pay_refund_webhook', 'provider_refund_id' => 'rfnd_webhook_123']);
+        $payment->enrollment()->update(['status' => 'active']);
+        $body = json_encode([
+            'event' => 'refund.processed',
+            'payload' => ['refund' => ['entity' => [
+                'id' => 'rfnd_webhook_123', 'payment_id' => 'pay_refund_webhook',
+                'amount' => 19900, 'status' => 'processed',
+            ]]],
+        ], JSON_THROW_ON_ERROR);
+        $server = [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_RAZORPAY_SIGNATURE' => hash_hmac('sha256', $body, 'webhook_secret'),
+            'HTTP_X_RAZORPAY_EVENT_ID' => 'evt_refund_processed_123',
+        ];
+
+        $this->call('POST', '/api/v1/payments/razorpay/webhook', [], [], [], $server, $body)->assertOk();
+        $this->call('POST', '/api/v1/payments/razorpay/webhook', [], [], [], $server, $body)->assertOk();
+
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'refunded']);
+        $this->assertDatabaseHas('test_series_enrollments', ['id' => $payment->test_series_enrollment_id, 'status' => 'refunded']);
+        $this->assertDatabaseCount('payment_webhook_events', 1);
+    }
+
+    public function test_student_can_view_invoice_only_for_own_captured_payment(): void
+    {
+        $admin = $this->user('super-admin', 'invoice-admin@example.test');
+        $student = $this->user('student', 'invoice-owner@example.test');
+        $other = $this->user('student', 'invoice-other@example.test');
+        $series = $this->paidSeries($admin);
+        $payment = $this->paymentFor($student, $series, 'captured');
+        $payment->update(['provider_payment_id' => 'pay_invoice_123', 'verified_at' => now()]);
+
+        $this->actingAs($student)->get('/student/payments/'.$payment->id.'/invoice')->assertOk();
+        $this->actingAs($other)->get('/student/payments/'.$payment->id.'/invoice')->assertNotFound();
+    }
+
+    public function test_admin_payment_dashboard_exposes_revenue_and_refund_totals(): void
+    {
+        $admin = $this->user('super-admin', 'revenue-admin@example.test');
+        $student = $this->user('student', 'revenue-student@example.test');
+        $series = $this->paidSeries($admin);
+        $captured = $this->paymentFor($student, $series, 'captured');
+        $captured->update(['provider_payment_id' => 'pay_revenue_1', 'verified_at' => now()]);
+        $refunded = $this->paymentFor($student, $series, 'refunded');
+        $refunded->update(['provider_payment_id' => 'pay_revenue_2', 'verified_at' => now(), 'refunded_at' => now()]);
+
+        $response = $this->actingAs($admin)->get('/admin/payments')->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Payments/Index')
+            ->where('summary.gross_revenue_paise', 39800)
+            ->where('summary.refunded_paise', 19900)
+            ->where('summary.net_revenue_paise', 19900));
+    }
+
 }
