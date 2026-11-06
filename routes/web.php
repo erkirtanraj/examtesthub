@@ -21,17 +21,17 @@ use App\Http\Controllers\Student\StudentExamController;
 use App\Http\Controllers\Student\TestSeriesController as StudentTestSeriesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-Route::get('/', function () {
+Route::get('/sitemap.xml', PublicSitemapController::class)->name('sitemap');\nRoute::get('/', function () {
     $content = WebsiteContent::query()->where('is_published', true)->whereIn('type', ['home', 'menu', 'footer', 'contact'])->orderBy('sort_order')->get();
     $sections = WebsiteContent::query()->where('type', 'home')->where('key', 'like', 'section.%')->where('is_published', true)->orderBy('sort_order')->orderBy('id')->get();
-    return Inertia::render('Welcome', ['websiteContent' => $content, 'homepageSections' => $sections]);
+    return Inertia::render('Welcome', [\n        'websiteContent' => $content,\n        'homepageSections' => $sections,\n        'seo' => [\n            'title' => 'ExamTestHub - Learn, Practice and Achieve',\n            'description' => 'Prepare for competitive exams with structured courses, online test series and study materials on ExamTestHub.',\n            'canonical' => route('home'),\n        ],\n    ]);
 })->name('home');
 Route::get('/courses',[PublicCatalogController::class,'index'])->defaults('type','courses')->name('public.courses');
 Route::get('/study-materials',[PublicCatalogController::class,'index'])->defaults('type','materials')->name('public.materials');
 Route::get('/test-series',[PublicCatalogController::class,'index'])->defaults('type','test-series')->name('public.test-series');
 Route::get('/pages/{slug}', function (string $slug) {
     $page = WebsiteContent::query()->whereIn('type', ['page', 'legal'])->where('slug', $slug)->where('is_published', true)->firstOrFail();
-    return Inertia::render('Public/Page', ['page' => ['title' => $page->title, 'content' => $page->content]]);
+    $localizedContent = $page->content['en'] ?? $page->content;\n    $description = is_string($localizedContent) ? trim(strip_tags($localizedContent)) : '';\n    return Inertia::render('Public/Page', [\n        'page' => ['title' => $page->title, 'content' => $page->content],\n        'seo' => [\n            'title' => $page->title . ' | ExamTestHub',\n            'description' => mb_substr($description ?: ('Read ' . $page->title . ' on ExamTestHub.'), 0, 160),\n            'canonical' => route('public.page', ['slug' => $page->slug]),\n        ],\n    ]);
 })->name('public.page');
 Route::get('/language/{locale}',function(string $locale){abort_unless(in_array($locale,['en','hi'],true),404);session(['locale'=>$locale]);$user=request()->user();if($user&&(!$user->hasRole('student')||StudentProfileSetting::current()->allow_language_edit))$user->forceFill(['preferred_locale'=>$locale])->save();return back();})->name('language.switch');
 Route::middleware('guest')->group(function(){
