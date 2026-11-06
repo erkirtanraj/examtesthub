@@ -29,10 +29,11 @@ class PaymentController extends Controller
     {
         abort_unless($testSeries->isAvailable() && $testSeries->access_type === 'paid', 404);
         $config = $this->razorpayConfig();
+        $couponCode = trim((string) ($request->validate(['coupon_code' => ['nullable', 'string', 'max:40']])['coupon_code'] ?? ''));
 
         // Lock the series row so concurrent retries for one student serialize
         // before checking or creating the enrollment's pending payment record.
-        $payment = DB::transaction(function () use ($request, $testSeries) {
+        $payment = DB::transaction(function () use ($request, $testSeries, $couponCode) {
             $series = TestSeries::whereKey($testSeries->id)->lockForUpdate()->firstOrFail();
             abort_unless($series->isAvailable() && $series->access_type === 'paid', 404);
 
@@ -94,14 +95,30 @@ class PaymentController extends Controller
 
             $receipt = 'eth_'.$enrollment->id.'_'.Str::lower(Str::random(12));
 
-            return Payment::create([
+            $newPayment = Payment::create([
                 'test_series_enrollment_id' => $enrollment->id,
                 'user_id' => $request->user()->id,
                 'receipt' => $receipt,
                 'amount_paise' => $amountPaise,
+                'subtotal_paise' => $amountPaise,
                 'currency' => 'INR',
                 'status' => 'pending',
             ]);
+
+            if ($couponCode !== '') {
+                $quote = app('App\\Services\\CouponPricingService')->reserveForPayment(
+                    $couponCode, $newPayment, $amountPaise, 'test_series', $series->id
+                );
+                $newPayment->update([
+                    'coupon_id' => $quote['coupon']->id,
+                    'coupon_code' => $quote['coupon']->code,
+                    'subtotal_paise' => $quote['subtotal_paise'],
+                    'discount_paise' => $quote['discount_paise'],
+                    'amount_paise' => $quote['amount_paise'],
+                ]);
+            }
+
+            return $newPayment;
         });
 
         // A retry must return the same payable Razorpay order, never create another.
@@ -140,10 +157,11 @@ class PaymentController extends Controller
         $config = $this->razorpayConfig();
         $amountPaise = (int) round(((float) $course->price) * 100);
         abort_if($amountPaise < 100, 422, 'The payment amount is invalid.');
+        $couponCode = trim((string) ($request->validate(['coupon_code' => ['nullable', 'string', 'max:40']])['coupon_code'] ?? ''));
 
         // Serialize order creation per course enrollment. Concurrent retries either
         // reuse the active provider order or are told that order creation is in progress.
-        $payment = DB::transaction(function () use ($request, $course, $amountPaise) {
+        $payment = DB::transaction(function () use ($request, $course, $amountPaise, $couponCode) {
             $lockedCourse = \App\Models\Course::whereKey($course->id)->lockForUpdate()->firstOrFail();
             abort_unless($lockedCourse->isAvailable() && $lockedCourse->access_type === 'paid', 404);
 
@@ -201,14 +219,30 @@ class PaymentController extends Controller
 
             $receipt = 'course_'.$enrollment->id.'_'.Str::lower(Str::random(12));
 
-            return Payment::create([
+            $newPayment = Payment::create([
                 'course_enrollment_id' => $enrollment->id,
                 'user_id' => $request->user()->id,
                 'receipt' => $receipt,
                 'amount_paise' => $amountPaise,
+                'subtotal_paise' => $amountPaise,
                 'currency' => 'INR',
                 'status' => 'pending',
             ]);
+
+            if ($couponCode !== '') {
+                $quote = app('App\\Services\\CouponPricingService')->reserveForPayment(
+                    $couponCode, $newPayment, $amountPaise, 'course', $lockedCourse->id
+                );
+                $newPayment->update([
+                    'coupon_id' => $quote['coupon']->id,
+                    'coupon_code' => $quote['coupon']->code,
+                    'subtotal_paise' => $quote['subtotal_paise'],
+                    'discount_paise' => $quote['discount_paise'],
+                    'amount_paise' => $quote['amount_paise'],
+                ]);
+            }
+
+            return $newPayment;
         });
 
         // A retry must return the same payable Razorpay order, never create another.
