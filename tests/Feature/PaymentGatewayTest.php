@@ -235,6 +235,43 @@ class PaymentGatewayTest extends TestCase
         ]);
     }
 
+    public function test_duplicate_payment_captured_webhook_cannot_reverse_a_pending_refund(): void
+    {
+        $admin = $this->user('super-admin', 'refund-race-admin@example.test');
+        $student = $this->user('student', 'refund-race-student@example.test');
+        $series = $this->paidSeries($admin);
+        $payment = $this->paymentFor($student, $series, 'refund_pending');
+        $payment->update([
+            'provider_payment_id' => 'pay_refund_race',
+            'provider_refund_id' => 'rfnd_refund_race',
+        ]);
+        $payment->enrollment()->update(['status' => 'active']);
+
+        $body = json_encode([
+            'event' => 'payment.captured',
+            'payload' => ['payment' => ['entity' => [
+                'id' => 'pay_refund_race',
+                'order_id' => $payment->provider_order_id,
+                'amount' => $payment->amount_paise,
+                'currency' => $payment->currency,
+                'status' => 'captured',
+            ]]],
+        ], JSON_THROW_ON_ERROR);
+        $server = [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_RAZORPAY_SIGNATURE' => hash_hmac('sha256', $body, 'webhook_secret'),
+            'HTTP_X_RAZORPAY_EVENT_ID' => 'evt_capture_during_refund',
+        ];
+
+        $this->call('POST', '/api/v1/payments/razorpay/webhook', [], [], [], $server, $body)->assertOk();
+
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'refund_pending']);
+        $this->assertDatabaseHas('test_series_enrollments', [
+            'id' => $payment->test_series_enrollment_id,
+            'status' => 'active',
+        ]);
+    }
+
     public function test_refund_processed_webhook_is_signed_idempotent_and_revokes_access(): void
     {
         $admin = $this->user('super-admin', 'refund-webhook-admin@example.test');
