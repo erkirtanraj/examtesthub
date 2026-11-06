@@ -5,7 +5,8 @@ import PortalLayout from '../../../Layouts/PortalLayout.vue';
 
 const props = defineProps({ certificate: Object, student: Object, course: Object });
 const page = usePage();
-const hi = computed(() => page.props.locale === 'hi');\nfunction printCertificate() { window.print(); }
+const hi = computed(() => page.props.locale === 'hi');
+function printCertificate() { window.print(); }
 </script>
 
 <template>
