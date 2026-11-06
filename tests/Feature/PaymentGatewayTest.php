@@ -89,6 +89,37 @@ class PaymentGatewayTest extends TestCase
         ]);
     }
 
+    public function test_coupon_is_reserved_and_discounted_amount_is_sent_to_razorpay(): void
+    {
+        $admin = $this->user('super-admin', 'coupon-admin@example.test');
+        $student = $this->user('student', 'coupon-student@example.test');
+        $series = $this->paidSeries($admin);
+        \\App\\Models\\Coupon::create([
+            'code' => 'SAVE20', 'discount_type' => 'percentage', 'discount_value' => 20,
+            'minimum_amount' => 0, 'usage_limit' => 10, 'per_user_limit' => 1,
+            'used_count' => 0, 'applies_to' => 'test_series', 'test_series_id' => $series->id,
+            'is_active' => true,
+        ]);
+        Http::fake(['https://api.razorpay.com/v1/orders' => Http::response([
+            'id' => 'order_coupon_123', 'amount' => 15920, 'currency' => 'INR',
+        ], 200)]);
+
+        $this->actingAs($student)->post('/student/test-series/'.$series->id.'/checkout', [
+            'coupon_code' => 'save20',
+        ])->assertRedirect();
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.razorpay.com/v1/orders'
+            && $request['amount'] === 15920);
+        $this->assertDatabaseHas('payments', [
+            'user_id' => $student->id, 'coupon_code' => 'SAVE20',
+            'subtotal_paise' => 19900, 'discount_paise' => 3980,
+            'amount_paise' => 15920, 'status' => 'pending',
+        ]);
+        $this->assertDatabaseHas('coupon_reservations', [
+            'user_id' => $student->id, 'status' => 'reserved', 'discount_paise' => 3980,
+        ]);
+    }
+
     public function test_checkout_retry_reuses_the_existing_pending_razorpay_order(): void
     {
         $admin = $this->user('super-admin', 'pay-admin-retry@example.test');
