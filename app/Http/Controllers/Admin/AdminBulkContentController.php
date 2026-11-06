@@ -86,15 +86,15 @@ class AdminBulkContentController extends Controller
     private function assertDeletable(string $resource, array $ids): void
     {
         $blocked = match ($resource) {
-            'courses' => CourseEnrollment::whereIn('course_id', $ids)->exists(),
+            'courses' => CourseEnrollment::whereIn('course_id', $ids)->exists() || StudyMaterial::whereIn('course_id', $ids)->exists(),
             'exams' => Exam::whereIn('id', $ids)->where(fn ($q) => $q->whereHas('attempts')->orWhereHas('testSeries'))->exists(),
-            'questions' => Question::whereIn('id', $ids)->whereHas('exams')->exists(),
+            'questions' => Question::whereIn('id', $ids)->whereHas('exams')->exists() || DB::table('exam_attempt_answers')->whereIn('question_id', $ids)->exists(),
             'subjects' => Question::whereIn('subject_id', $ids)->exists() || StudyMaterial::whereIn('subject_id', $ids)->exists(),
             'test-series' => TestSeriesEnrollment::whereIn('test_series_id', $ids)->exists(),
             default => false,
         };
         abort_if($blocked, 422, match ($resource) {
-            'courses' => 'Selected courses have student enrollments. Archive them instead of deleting.',
+            'courses' => 'Selected courses have student enrollments or linked study materials. Remove those dependencies or archive the courses instead.',
             'exams' => 'Selected exams have attempts or belong to a test series. Remove those dependencies first.',
             'questions' => 'Selected questions are used by an exam. Remove them from every exam before deleting.',
             'subjects' => 'Selected subjects still contain questions or study materials. Move or delete those records first.',
