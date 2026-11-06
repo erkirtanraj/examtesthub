@@ -267,6 +267,7 @@ class PaymentController extends Controller
 
             if (! $response->successful() || ! filled($response->json('id'))) {
                 $payment->update(['status' => 'failed', 'failure_description' => 'Order creation failed at payment provider.']);
+                app('App\\Services\\CouponPricingService')->releaseForPayment($payment);
                 Log::warning('Razorpay course order creation failed', ['payment_id' => $payment->id, 'status' => $response->status()]);
                 return back()->withErrors(['payment' => 'Unable to start payment. Please try again later.']);
             }
