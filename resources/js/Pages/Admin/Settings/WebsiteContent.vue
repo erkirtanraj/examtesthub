@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
+import BulkSelection from '../../../Components/Admin/BulkSelection.vue';
 
 const props = defineProps({ items: { type: Array, default: () => [] } });
 const page = usePage();
@@ -107,6 +108,7 @@ function resetLayout() {
                 </div>
             </div>
 
+<BulkSelection :items="blocks" resource="website-content" storage-key="admin-bulk-website-content" label-key="title" />
             <div v-if="!blocks.length" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
                 {{ hi ? 'अभी कोई होमपेज सेक्शन नहीं है। कस्टम HTML ब्लॉक जोड़ें।' : 'No homepage sections found. Add a custom HTML block to get started.' }}
             </div>
