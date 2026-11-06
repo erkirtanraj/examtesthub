@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\ExamAttemptAnswer;
+use App\Models\Permission;
 use App\Models\Question;
 use App\Models\Role;
 use App\Models\Subject;
@@ -34,6 +35,8 @@ class StudentReportTest extends TestCase
             'is_active' => true,
         ]);
         $user->roles()->attach($role);
+        $permission = Permission::firstOrCreate(['slug' => 'results.view-own'], ['name' => 'View own results']);
+        $role->permissions()->syncWithoutDetaching([$permission->id]);
         return $user;
     }
 
