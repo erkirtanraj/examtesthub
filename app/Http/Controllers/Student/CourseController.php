@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\CourseLesson;
 use App\Models\CourseLessonProgress;
+use App\Notifications\PlatformNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
