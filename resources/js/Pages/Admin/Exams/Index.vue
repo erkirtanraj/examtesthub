@@ -32,9 +32,9 @@ function changeStatus(exam, status) {
 
 <template>
 <PortalLayout portal="admin" :title="hi ? 'परीक्षा प्रबंधन' : 'Exam management'" :subtitle="hi ? 'प्रश्न चुनें, समय निर्धारित करें और परीक्षा प्रकाशित करें।' : 'Build exams from approved questions, configure timing and manage publication.'">
-<BulkSelection ref="bulkSelection" :items="exams.data" resource="exams" storage-key="admin-bulk-exams" />
 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
 <section class="space-y-4">
+<BulkSelection ref="bulkSelection" :items="exams.data" resource="exams" storage-key="admin-bulk-exams" />
 <div class="overflow-x-auto rounded-xl border bg-white">
 <table class="w-full text-left text-sm">
 <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="w-10 p-3"><span class="sr-only">Select</span></th><th class="p-3">Exam</th><th class="p-3">Questions</th><th class="p-3">Duration</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
