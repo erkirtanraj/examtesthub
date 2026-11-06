@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight, BookOpen, ClipboardCheck, FileText, GraduationCap,
     TrendingUp, ShieldCheck, Menu, X, Sparkles, CheckCircle2,
