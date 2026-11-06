@@ -16,8 +16,8 @@ function status(course,value){ if(confirm('Change course status to '+value+'?'))
 </script>
 <template>
 <PortalLayout portal="admin" :title="hi?'LMS कोर्स प्रबंधन':'LMS Course Management'" :subtitle="hi?'कोर्स, मूल्य, प्रकाशन और पाठ्यक्रम संरचना प्रबंधित करें।':'Create and manage bilingual courses, pricing, publication and learning content.'">
-<div class="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
 <BulkSelection :items="courses.data" resource="courses" storage-key="admin-bulk-courses" label-key="title" />
+<div class="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
 <section class="min-w-0 overflow-x-auto rounded-2xl border bg-white">
 <table class="w-full min-w-[680px] text-left text-sm">
 <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="p-3">Course</th><th class="p-3">Access</th><th class="p-3">Sections</th><th class="p-3">Students</th><th class="p-3">Status</th><th class="p-3">Actions</th></tr></thead>
