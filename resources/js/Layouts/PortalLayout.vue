@@ -98,6 +98,7 @@ const studentItems = computed(() => [
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
     { label: isHindi.value ? 'मेरा प्रदर्शन' : 'My Performance', href: '/student/performance', icon: 'reports', permission: 'results.view-own' },
+    { label: isHindi.value ? 'विस्तृत रिपोर्ट' : 'Detailed Report', href: '/student/reports', icon: 'reports', permission: 'results.view-own' },
     { label: isHindi.value ? 'PDF सामग्री' : 'Study Materials', href: '/student/materials', icon: 'materials' },
     { label: isHindi.value ? 'टेस्ट सीरीज़' : 'Test Series', href: '/student/test-series', icon: 'series' },
     { label: isHindi.value ? 'मेरी टेस्ट सीरीज़' : 'My Test Series', href: '/student/my-test-series', icon: 'learning' },
