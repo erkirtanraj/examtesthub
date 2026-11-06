@@ -70,7 +70,9 @@ Route::middleware('guest')->group(function(){
 Route::post('/logout',[PortalAuthenticationController::class,'logout'])->middleware('auth')->name('logout');
 Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-manager'])->prefix('admin')->name('admin.')->group(function(){
  Route::get('/',fn()=>redirect()->route('admin.dashboard'));
- Route::get('/dashboard',fn()=>Inertia::render('Admin/Dashboard'))->name('dashboard');\n Route::get('/announcements',[AnnouncementController::class,'index'])->middleware('permission:settings.manage')->name('announcements.index');\n Route::post('/announcements',[AnnouncementController::class,'store'])->middleware(['permission:settings.manage','throttle:10,1'])->name('announcements.store');
+ Route::get('/dashboard',fn()=>Inertia::render('Admin/Dashboard'))->name('dashboard');
+ Route::get('/announcements',[AnnouncementController::class,'index'])->middleware('permission:settings.manage')->name('announcements.index');
+ Route::post('/announcements',[AnnouncementController::class,'store'])->middleware(['permission:settings.manage','throttle:10,1'])->name('announcements.store');
  Route::get('/reports',[ReportsController::class,'index'])->middleware('permission:reports.view')->name('reports.index');
  Route::get('/course-analytics',[CourseAnalyticsController::class,'index'])->middleware('permission:reports.view')->name('course-analytics.index');
  Route::get('/exam-analytics',[ExamAnalyticsController::class,'index'])->middleware('permission:reports.view')->name('exam-analytics.index');
@@ -182,7 +184,11 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
  Route::post('/test-series/{testSeries}/checkout',[PaymentController::class,'createOrder'])->middleware('throttle:5,1')->name('payments.create');
  Route::get('/payments/{payment}/checkout',[PaymentController::class,'checkout'])->name('payments.checkout');
  Route::post('/payments/{payment}/verify',[PaymentController::class,'verify'])->middleware('throttle:10,1')->name('payments.verify');
- Route::get('/dashboard',fn()=>Inertia::render('Student/Dashboard'))->name('dashboard');\n Route::get('/notifications',[NotificationController::class,'index'])->name('notifications.index');\n Route::patch('/notifications/{notification}/read',[NotificationController::class,'markRead'])->name('notifications.read');\n Route::post('/notifications/read-all',[NotificationController::class,'markAllRead'])->name('notifications.read-all');\n Route::put('/notification-preferences',[NotificationController::class,'updatePreferences'])->name('notifications.preferences');
+ Route::get('/dashboard',fn()=>Inertia::render('Student/Dashboard'))->name('dashboard');
+ Route::get('/notifications',[NotificationController::class,'index'])->name('notifications.index');
+ Route::patch('/notifications/{notification}/read',[NotificationController::class,'markRead'])->name('notifications.read');
+ Route::post('/notifications/read-all',[NotificationController::class,'markAllRead'])->name('notifications.read-all');
+ Route::put('/notification-preferences',[NotificationController::class,'updatePreferences'])->name('notifications.preferences');
  Route::middleware('permission:profile.manage')->group(function(){
   Route::get('/profile',[StudentProfileController::class,'index'])->name('profile.index');
   Route::put('/profile',[StudentProfileController::class,'update'])->name('profile.update');
