@@ -36,7 +36,7 @@ This policy applies to **every feature and every phase until the complete agreed
 - Admin bulk actions were delivered in PR #27: https://github.com/erkirtanraj/examtesthub/pull/27
 - PR #27 added pagination-safe selection and guarded bulk operations across admin content areas, preserving dependency protections and authorization.
 - Do not reimplement those capabilities without first identifying a concrete gap.
-- Coupon/discount functionality is the next planned feature. The branch `feature/coupon-code-discounts` was created from the post-PR-#27 baseline; implementation is not yet recorded as complete.
+- Coupon/discount functionality is actively being implemented on `feature/coupon-code-discounts`; it remains unmerged and has not been deployed.
 
 ## Feature roadmap
 
@@ -44,7 +44,7 @@ Track each item as Not started, In progress, In review, Approved, or Merged. Upd
 
 | Order | Feature / phase | Reference | Status | Acceptance focus |
 |---:|---|---|---|---|
-| 1 | Coupon and discount management | Examforge + LMS_Quiz_Website | In progress (coupon schema, pricing service, payment fields, admin CRUD UI/routes, and pricing tests committed; malformed route newline syntax corrected; checkout integration, atomic usage reservation/redemption, payment lifecycle tests, and review pending) | Admin CRUD; percentage/fixed discounts; validity and usage limits; minimum spend; course/test-series scope; server-side checkout calculation; payment audit trail; atomic usage consumption; tests for invalid, expired, exhausted, scoped, and valid coupons |
+| 1 | Coupon and discount management | Examforge + LMS_Quiz_Website | In progress (coupon schema, pricing service, admin CRUD, reservations, discounted Razorpay order amounts for course/test-series, capture redemption, failed/abandoned order release, and checkout price breakdown committed; coupon-code entry UI, broader payment lifecycle tests, test execution, frontend build, and full review remain pending) | Admin CRUD; percentage/fixed discounts; validity and usage limits; minimum spend; course/test-series scope; server-side checkout calculation; payment audit trail; atomic usage consumption; tests for invalid, expired, exhausted, scoped, and valid coupons |
 | 2 | Student leaderboard and ranking | Examforge | Not started | Fair ranking rules, privacy controls, pagination, anti-abuse safeguards, tests |
 | 3 | Exam sections and advanced attempt controls, including pause/resume where permitted | Examforge | Not started | Server-authoritative timers and attempt state; safe resume rules; section navigation; auditability; tests |
 | 4 | Course/test-series bundles | LMS_Quiz_Website | Not started | Bundle catalogue, pricing, entitlements, purchase lifecycle, access checks |
