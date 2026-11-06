@@ -14,7 +14,23 @@ use Inertia\Response;
 
 class CourseCertificateController extends Controller
 {
-    public function verify(string $certificate): Response\n    {\n        $record = CourseCertificate::query()->with(['enrollment.user:id,name', 'enrollment.course:id,title,title_hi'])\n            ->where('certificate_number', $certificate)->first();\n\n        return Inertia::render('Public/CertificateVerification', [\n            'valid' => (bool) $record,\n            'certificate' => $record ? [\n                'number' => $record->certificate_number,\n                'issued_at' => $record->issued_at->toDateString(),\n                'student' => $record->enrollment->user->name,\n                'course' => $record->enrollment->course->title,\n            ] : null,\n        ]);\n    }\n\n    public function show(Course $course): Response
+    public function verify(string $certificate): Response
+    {
+        $record = CourseCertificate::query()->with(['enrollment.user:id,name', 'enrollment.course:id,title,title_hi'])
+            ->where('certificate_number', $certificate)->first();
+
+        return Inertia::render('Public/CertificateVerification', [
+            'valid' => (bool) $record,
+            'certificate' => $record ? [
+                'number' => $record->certificate_number,
+                'issued_at' => $record->issued_at->toDateString(),
+                'student' => $record->enrollment->user->name,
+                'course' => $record->enrollment->course->title,
+            ] : null,
+        ]);
+    }
+
+    public function show(Course $course): Response
     {
         abort_unless($course->isAvailable() || $course->status === 'archived', 404);
 
