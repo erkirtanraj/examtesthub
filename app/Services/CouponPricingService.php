@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Models\\Coupon;
-use App\\Models\\CouponRedemption;
-use App\\Models\\CouponReservation;
-use App\\Models\\Payment;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\Coupon;
+use App\Models\CouponRedemption;
+use App\Models\CouponReservation;
+use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CouponPricingService
 {
@@ -92,7 +92,7 @@ class CouponPricingService
             return;
         }
         if ($reservation->status !== 'reserved') {
-            throw new \\RuntimeException('Coupon reservation is not redeemable.');
+            throw new \RuntimeException('Coupon reservation is not redeemable.');
         }
 
         $coupon = Coupon::query()->whereKey($reservation->coupon_id)->lockForUpdate()->firstOrFail();
