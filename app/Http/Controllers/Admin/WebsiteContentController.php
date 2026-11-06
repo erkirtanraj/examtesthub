@@ -157,7 +157,7 @@ class WebsiteContentController extends Controller
     public function update(Request $request, WebsiteContent $websiteContent): RedirectResponse
     {
         $data = $this->validated($request);
-        $data['slug'] = $data['type'] === 'page'
+        $data['slug'] = in_array($data['type'], ['page', 'legal'], true)
             ? Str::slug($data['slug'] ?: $data['title'])
             : null;
 
