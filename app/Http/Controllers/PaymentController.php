@@ -446,9 +446,11 @@ class PaymentController extends Controller
                 ]);
 
             if (! $response->successful() || ! filled($response->json('id'))) {
-                $locked->update(['status' => 'captured', 'refund_reason' => null]);
+                if ($response->clientError()) {
+                    $locked->update(['status' => 'captured', 'refund_reason' => null]);
+                }
                 Log::warning('Razorpay refund request failed', ['payment_id' => $locked->id, 'status' => $response->status()]);
-                return back()->withErrors(['refund' => 'The provider could not start the refund. Please verify the payment status before retrying.']);
+                return back()->withErrors(['refund' => 'The provider did not confirm the refund request. Check the payment provider dashboard before retrying.']);
             }
 
             $locked->update(['provider_refund_id' => $response->json('id')]);
@@ -456,9 +458,10 @@ class PaymentController extends Controller
                 $this->finalizeRefund($locked);
             }
         } catch (\Throwable $exception) {
-            $locked->update(['status' => 'captured', 'refund_reason' => null]);
-            Log::error('Razorpay refund request failed', ['payment_id' => $locked->id, 'exception' => $exception::class]);
-            return back()->withErrors(['refund' => 'The refund service is temporarily unavailable.']);
+            // Keep the record in refund_pending: a network timeout may happen after
+            // the provider accepted the request. Reconcile it before another attempt.
+            Log::error('Razorpay refund request outcome is unknown', ['payment_id' => $locked->id, 'exception' => $exception::class]);
+            return back()->withErrors(['refund' => 'The refund request outcome is not confirmed. Check Razorpay before taking further action.']);
         }
 
         return back()->with('success', 'Refund request submitted to Razorpay.');
@@ -503,9 +506,11 @@ class PaymentController extends Controller
             ->where('created_at', '>=', $from)
             ->when($filters['status'] ?? null, fn ($builder, $status) => $builder->where('status', $status))
             ->when($filters['search'] ?? null, function ($builder, $term) {
-                $builder->whereHas('user', fn ($user) => $user->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
-                    ->orWhere('provider_payment_id', 'like', "%{$term}%")
-                    ->orWhere('provider_order_id', 'like', "%{$term}%");
+                $builder->where(function ($search) use ($term) {
+                    $search->whereHas('user', fn ($user) => $user->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
+                        ->orWhere('provider_payment_id', 'like', "%{$term}%")
+                        ->orWhere('provider_order_id', 'like', "%{$term}%");
+                });
             });
         $summary = Payment::query()->where('created_at', '>=', $from);
         $captured = (clone $summary)->whereIn('status', ['captured', 'refund_pending', 'refunded']);
