@@ -99,6 +99,10 @@ const steps = computed(() => [
 </script>
 
 <template>
+    <Head :title="page.props.seo?.title || 'ExamTestHub'">
+        <meta head-key="description" name="description" :content="page.props.seo?.description || ''" />
+        <link head-key="canonical" rel="canonical" :href="page.props.seo?.canonical || ''" />
+    </Head>
     <main class="min-h-screen bg-white text-slate-900">
         <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-8">
