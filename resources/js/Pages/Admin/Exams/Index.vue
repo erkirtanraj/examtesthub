@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
+import BulkSelection from '../../../Components/Admin/BulkSelection.vue';
 
 const props = defineProps({ exams: Object, questions: Array });
 const page = usePage();
@@ -31,6 +32,7 @@ function changeStatus(exam, status) {
 <template>
 <PortalLayout portal="admin" :title="hi ? 'परीक्षा प्रबंधन' : 'Exam management'" :subtitle="hi ? 'प्रश्न चुनें, समय निर्धारित करें और परीक्षा प्रकाशित करें।' : 'Build exams from approved questions, configure timing and manage publication.'">
 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+<BulkSelection :items="exams.data" resource="exams" storage-key="admin-bulk-exams" label-key="title" />
 <section class="space-y-4">
 <div class="overflow-x-auto rounded-xl border bg-white">
 <table class="w-full text-left text-sm">
