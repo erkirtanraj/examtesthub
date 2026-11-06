@@ -88,7 +88,7 @@ class NotificationCenterTest extends TestCase
         $admin = $this->user('admin', 'notice-admin@example.test', ['settings.manage']);
         $student = $this->user('student', 'notice-target@example.test');
         $inactive = $this->user('student', 'notice-inactive@example.test');
-        $inactive->update(['is_active' => false]);
+        $inactive->forceFill(['is_active' => false])->save();
 
         $this->actingAs($admin)->post('/admin/announcements', [
             'title' => 'Exam schedule',
