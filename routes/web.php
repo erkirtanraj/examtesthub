@@ -153,7 +153,6 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::delete('/materials/{studyMaterial}',[AdminStudyMaterialController::class,'destroy'])->name('materials.destroy');
  });
  Route::middleware('permission:tests.manage')->group(function(){
-  Route::get('/payments',[PaymentController::class,'adminIndex'])->name('payments.index');
   Route::get('/exams',[ExamManagementController::class,'index'])->name('exams.index');
   Route::post('/exams',[ExamManagementController::class,'store'])->name('exams.store');
   Route::put('/exams/{exam}',[ExamManagementController::class,'update'])->name('exams.update');
@@ -165,6 +164,8 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
   Route::get('/test-series/{testSeries}/enrollments',[AdminTestSeriesController::class,'enrollments'])->name('test-series.enrollments');
   Route::post('/test-series/{testSeries}/enrollments/{user}/activate',[AdminTestSeriesController::class,'activateEnrollment'])->name('test-series.enrollments.activate');
  });
+ Route::get('/payments',[PaymentController::class,'adminIndex'])->middleware('permission:payments.view')->name('payments.index');
+ Route::post('/payments/{payment}/refund',[PaymentController::class,'refund'])->middleware(['permission:payments.manage','throttle:5,1'])->name('payments.refund');
 });
 Route::middleware(['auth','active','role:student'])->prefix('student')->name('student.')->group(function(){
  Route::middleware('permission:courses.view')->group(function(){
@@ -183,6 +184,7 @@ Route::middleware(['auth','active','role:student'])->prefix('student')->name('st
   Route::get('/materials/{studyMaterial}/download',[StudentStudyMaterialController::class,'download'])->name('materials.download');
  });
  Route::get('/payments',[PaymentController::class,'studentIndex'])->name('payments.index');
+ Route::get('/payments/{payment}/invoice',[PaymentController::class,'invoice'])->name('payments.invoice');
  Route::post('/test-series/{testSeries}/checkout',[PaymentController::class,'createOrder'])->middleware('throttle:5,1')->name('payments.create');
  Route::get('/payments/{payment}/checkout',[PaymentController::class,'checkout'])->name('payments.checkout');
  Route::post('/payments/{payment}/verify',[PaymentController::class,'verify'])->middleware('throttle:10,1')->name('payments.verify');
