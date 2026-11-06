@@ -100,9 +100,15 @@ class PaymentGatewayTest extends TestCase
             'used_count' => 0, 'applies_to' => 'test_series', 'test_series_id' => $series->id,
             'is_active' => true,
         ]);
-        Http::fake(['https://api.razorpay.com/v1/orders' => Http::response([
-            'id' => 'order_coupon_123', 'amount' => 15920, 'currency' => 'INR',
-        ], 200)]);
+        Http::fake([
+            'https://api.razorpay.com/v1/orders' => Http::response([
+                'id' => 'order_coupon_123', 'amount' => 15920, 'currency' => 'INR',
+            ], 200),
+            'https://api.razorpay.com/v1/payments/pay_coupon_123' => Http::response([
+                'id' => 'pay_coupon_123', 'order_id' => 'order_coupon_123',
+                'amount' => 15920, 'currency' => 'INR', 'status' => 'captured',
+            ], 200),
+        ]);
 
         $this->actingAs($student)->post('/student/test-series/'.$series->id.'/checkout', [
             'coupon_code' => 'save20',
@@ -118,6 +124,22 @@ class PaymentGatewayTest extends TestCase
         $this->assertDatabaseHas('coupon_reservations', [
             'user_id' => $student->id, 'status' => 'reserved', 'discount_paise' => 3980,
         ]);
+
+        $payment = Payment::where('provider_order_id', 'order_coupon_123')->firstOrFail();
+        $signature = hash_hmac('sha256', 'order_coupon_123|pay_coupon_123', 'test_secret');
+        $this->actingAs($student)->post('/student/payments/'.$payment->id.'/verify', [
+            'razorpay_order_id' => 'order_coupon_123',
+            'razorpay_payment_id' => 'pay_coupon_123',
+            'razorpay_signature' => $signature,
+        ])->assertRedirect('/student/payments');
+
+        $this->assertDatabaseHas('coupon_reservations', [
+            'payment_id' => $payment->id, 'status' => 'redeemed',
+        ]);
+        $this->assertDatabaseHas('coupon_redemptions', [
+            'payment_id' => $payment->id, 'user_id' => $student->id, 'discount_paise' => 3980,
+        ]);
+        $this->assertDatabaseHas('coupons', ['code' => 'SAVE20', 'used_count' => 1]);
     }
 
     public function test_checkout_retry_reuses_the_existing_pending_razorpay_order(): void
