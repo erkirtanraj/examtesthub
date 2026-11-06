@@ -1,6 +1,7 @@
 <?php
 use App\Models\StudentProfileSetting;
 use App\Http\Controllers\Admin\AdminUserManagementController;
+use App\Http\Controllers\Admin\StudentManagementController;
 use App\Http\Controllers\Admin\CourseManagementController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\CourseAnalyticsController;
@@ -80,6 +81,11 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  Route::put('/settings/website-content/{websiteContent}',[WebsiteContentController::class,'update'])->middleware('permission:settings.manage')->name('settings.website-content.update');
  Route::delete('/settings/website-content/{websiteContent}',[WebsiteContentController::class,'destroy'])->middleware('permission:settings.manage')->name('settings.website-content.destroy');
  Route::put('/settings/student-profile',[StudentProfileSettingsController::class,'update'])->middleware('permission:settings.manage')->name('settings.student-profile.update');
+ Route::middleware('permission:users.view')->group(function(){
+  Route::get('/students',[StudentManagementController::class,'index'])->name('students.index');
+  Route::get('/students/export',[StudentManagementController::class,'export'])->middleware('permission:users.export')->name('students.export');
+  Route::get('/students/{user}',[StudentManagementController::class,'show'])->name('students.show');
+ });
  Route::middleware('permission:users.view')->group(function(){
   Route::get('/users',[AdminUserManagementController::class,'users'])->name('users.index');
   Route::get('/users/export',[AdminUserManagementController::class,'exportUsers'])->middleware('permission:users.export')->name('users.export');
