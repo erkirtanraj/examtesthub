@@ -84,7 +84,7 @@ class StudentExamController extends Controller {
    $locked->answers()->updateOrCreate(
     ['question_id'=>$question->id],
     [
-     'answer'=>$answer,
+     'answer'=>count($answer)>0?$answer:null,
      'marked_for_review'=>$data['marked_for_review']??false,
      'answered_at'=>count($answer)>0?now():null,
     ]
