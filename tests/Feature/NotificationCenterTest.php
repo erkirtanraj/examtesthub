@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\PlatformEmailNotification;
 use App\Notifications\PlatformNotification;
+use App\Services\NotificationDispatcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -113,17 +114,22 @@ class NotificationCenterTest extends TestCase
         $this->actingAs($admin)->get('/admin/announcements')->assertForbidden();
     }
 
-    public function test_notification_preferences_control_email_channel(): void
+    public function test_notification_preferences_control_queued_email_delivery(): void
     {
+        Notification::fake();
         $student = $this->user('student', 'notice-email@example.test');
         $notification = new PlatformNotification('Result', 'Your result is ready.');
         $emailNotification = new PlatformEmailNotification('Result', 'Your result is ready.');
         $this->assertSame(['database'], $notification->via($student));
-        $this->assertSame([], $emailNotification->via($student));
+        $this->assertSame(['mail'], $emailNotification->via($student));
+
+        NotificationDispatcher::send($student, 'Result', 'Your result is ready.');
+        Notification::assertSentTo($student, PlatformNotification::class);
+        Notification::assertNotSentTo($student, PlatformEmailNotification::class);
 
         $student->forceFill(['notification_preferences' => ['email' => true]])->save();
-        $this->assertSame(['database'], $notification->via($student->fresh()));
-        $this->assertSame(['mail'], $emailNotification->via($student->fresh()));
+        NotificationDispatcher::send($student->fresh(), 'Result', 'Your result is ready.');
+        Notification::assertSentTo($student, PlatformEmailNotification::class);
     }
     public function test_admin_can_force_queue_email_without_changing_student_preferences(): void
     {
