@@ -66,7 +66,7 @@ const adminGroups = computed(() => [
         items: [
             { label: isHindi.value ? 'सभी परीक्षाएँ' : 'All Exams', href: '/admin/exams', permission: 'tests.manage' },
             { label: isHindi.value ? 'टेस्ट सीरीज़' : 'Test Series', href: '/admin/test-series', permission: 'tests.manage' },
-            { label: isHindi.value ? 'भुगतान' : 'Payments', href: '/admin/payments', permission: 'tests.manage' },
+            { label: isHindi.value ? 'भुगतान और राजस्व' : 'Payments & Revenue', href: '/admin/payments', permission: 'payments.view' },
         ],
     },
     {

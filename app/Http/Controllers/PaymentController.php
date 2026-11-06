@@ -332,14 +332,19 @@ class PaymentController extends Controller
         abort_unless($eventId !== '' && strlen($eventId) <= 120, 400, 'Missing webhook event ID.');
         $eventType = (string) ($payload['event'] ?? '');
         $entity = $payload['payload']['payment']['entity'] ?? [];
+        $refundEntity = $payload['payload']['refund']['entity'] ?? [];
         $orderId = $entity['order_id'] ?? null;
         $paymentId = $entity['id'] ?? null;
+        $refundId = $refundEntity['id'] ?? null;
 
-        $inserted = DB::transaction(function () use ($eventId, $eventType, $request, $entity, $orderId, $paymentId) {
+        $inserted = DB::transaction(function () use ($eventId, $eventType, $request, $entity, $refundEntity, $orderId, $paymentId, $refundId) {
             $payment = null;
             if (in_array($eventType, ['payment.captured', 'payment.failed'], true)) {
                 $payment = Payment::where('provider_order_id', $orderId)->lockForUpdate()->first();
                 abort_unless($payment, 404, 'Payment order not found.');
+            } elseif ($eventType === 'refund.processed') {
+                $payment = Payment::where('provider_refund_id', $refundId)->lockForUpdate()->first();
+                abort_unless($payment, 404, 'Refund record not found.');
             }
 
             $created = DB::table('payment_webhook_events')->insertOrIgnore([
@@ -357,7 +362,7 @@ class PaymentController extends Controller
             if ($eventType === 'payment.captured' && $payment && $paymentId
                 && (int) ($entity['amount'] ?? 0) === $payment->amount_paise
                 && ($entity['currency'] ?? null) === $payment->currency) {
-                if ($payment->status !== 'captured' && $payment->status !== 'refunded') {
+                if (in_array($payment->status, ['pending', 'failed'], true)) {
                     $enrollment = $payment->course_enrollment_id
                         ? \App\Models\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->firstOrFail()
                         : TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->firstOrFail();
@@ -382,12 +387,102 @@ class PaymentController extends Controller
                     'failure_code' => $entity['error_code'] ?? null,
                     'failure_description' => Str::limit((string) ($entity['error_description'] ?? 'Payment failed.'), 500, ''),
                 ]);
+            } elseif ($eventType === 'refund.processed' && $payment && $payment->status === 'refund_pending'
+                && (int) ($refundEntity['amount'] ?? 0) === $payment->amount_paise) {
+                $payment->update(['status' => 'refunded', 'refunded_at' => now()]);
+                $enrollment = $payment->course_enrollment_id
+                    ? \App\Models\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->first()
+                    : TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->first();
+                $enrollment?->update(['status' => 'refunded']);
             }
 
             return true;
         });
 
         return response()->json(['status' => $inserted ? 'accepted' : 'duplicate']);
+    }
+
+    public function invoice(Request $request, Payment $payment): Response
+    {
+        abort_unless($payment->user_id === $request->user()->id, 404);
+        abort_unless(in_array($payment->status, ['captured', 'refund_pending', 'refunded'], true), 404);
+
+        $payment->load(['enrollment.series:id,title', 'courseEnrollment.course:id,title', 'user:id,name,email']);
+
+        return Inertia::render('Student/Payments/Invoice', [
+            'payment' => [
+                'id' => $payment->id,
+                'receipt' => $payment->receipt,
+                'payment_id' => $payment->provider_payment_id,
+                'item' => $payment->courseEnrollment?->course?->title ?? $payment->enrollment?->series?->title ?? 'Learning purchase',
+                'student' => $payment->user?->name,
+                'email' => $payment->user?->email,
+                'amount' => $payment->amount_paise / 100,
+                'currency' => $payment->currency,
+                'status' => $payment->status,
+                'paid_at' => $payment->verified_at?->toIso8601String(),
+                'refunded_at' => $payment->refunded_at?->toIso8601String(),
+            ],
+        ]);
+    }
+
+    public function refund(Request $request, Payment $payment): RedirectResponse
+    {
+        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:500']]);
+        $locked = DB::transaction(function () use ($payment, $data) {
+            $record = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            abort_unless($record->status === 'captured' && filled($record->provider_payment_id), 409, 'Only captured payments can be refunded.');
+            $record->update(['status' => 'refund_pending', 'refund_reason' => $data['reason']]);
+
+            return $record;
+        });
+
+        try {
+            $config = $this->razorpayConfig();
+            $response = Http::withBasicAuth($config['key_id'], $config['key_secret'])
+                ->acceptJson()->timeout(20)
+                ->post(rtrim($config['base_url'], '/').'/payments/'.$locked->provider_payment_id.'/refund', [
+                    'notes' => ['payment_record_id' => (string) $locked->id, 'reason' => $data['reason']],
+                ]);
+
+            if (! $response->successful() || ! filled($response->json('id'))) {
+                if ($response->clientError()) {
+                    $locked->update(['status' => 'captured', 'refund_reason' => null]);
+                }
+                Log::warning('Razorpay refund request failed', ['payment_id' => $locked->id, 'status' => $response->status()]);
+                return back()->withErrors(['refund' => 'The provider did not confirm the refund request. Check the payment provider dashboard before retrying.']);
+            }
+
+            $locked->update(['provider_refund_id' => $response->json('id')]);
+            if ($response->json('status') === 'processed') {
+                $this->finalizeRefund($locked);
+            }
+        } catch (\Throwable $exception) {
+            // Keep the record in refund_pending: a network timeout may happen after
+            // the provider accepted the request. Reconcile it before another attempt.
+            Log::error('Razorpay refund request outcome is unknown', ['payment_id' => $locked->id, 'exception' => $exception::class]);
+            return back()->withErrors(['refund' => 'The refund request outcome is not confirmed. Check Razorpay before taking further action.']);
+        }
+
+        return back()->with('success', 'Refund request submitted to Razorpay.');
+    }
+
+    private function finalizeRefund(Payment $payment): void
+    {
+        DB::transaction(function () use ($payment) {
+            $locked = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status === 'refunded') {
+                return;
+            }
+            if ($locked->status !== 'refund_pending') {
+                return;
+            }
+            $locked->update(['status' => 'refunded', 'refunded_at' => now()]);
+            $enrollment = $locked->course_enrollment_id
+                ? \App\Models\CourseEnrollment::whereKey($locked->course_enrollment_id)->lockForUpdate()->first()
+                : TestSeriesEnrollment::whereKey($locked->test_series_enrollment_id)->lockForUpdate()->first();
+            $enrollment?->update(['status' => 'refunded']);
+        });
     }
 
     public function studentIndex(Request $request): Response
@@ -398,10 +493,41 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function adminIndex(): Response
+    public function adminIndex(Request $request): Response
     {
+        $filters = $request->validate([
+            'status' => ['nullable', 'in:pending,captured,failed,refund_pending,refunded'],
+            'search' => ['nullable', 'string', 'max:120'],
+            'days' => ['nullable', 'integer', 'in:7,30,90,365'],
+        ]);
+        $days = (int) ($filters['days'] ?? 30);
+        $from = now()->subDays($days - 1)->startOfDay();
+        $query = Payment::query()->with(['user:id,name,email', 'enrollment.series:id,title', 'courseEnrollment.course:id,title'])
+            ->where('created_at', '>=', $from)
+            ->when($filters['status'] ?? null, fn ($builder, $status) => $builder->where('status', $status))
+            ->when($filters['search'] ?? null, function ($builder, $term) {
+                $builder->where(function ($search) use ($term) {
+                    $search->whereHas('user', fn ($user) => $user->where('name', 'like', "%{$term}%")->orWhere('email', 'like', "%{$term}%"))
+                        ->orWhere('provider_payment_id', 'like', "%{$term}%")
+                        ->orWhere('provider_order_id', 'like', "%{$term}%");
+                });
+            });
+        $summary = Payment::query()->where('created_at', '>=', $from);
+        $captured = (clone $summary)->whereIn('status', ['captured', 'refund_pending', 'refunded']);
+        $gross = (int) $captured->sum('amount_paise');
+        $refunded = (int) (clone $summary)->where('status', 'refunded')->sum('amount_paise');
+
         return Inertia::render('Admin/Payments/Index', [
-            'payments' => Payment::with(['user:id,name,email', 'enrollment.series:id,title', 'courseEnrollment.course:id,title'])->latest()->paginate(30),
+            'payments' => $query->latest()->paginate(30)->withQueryString(),
+            'filters' => ['status' => $filters['status'] ?? '', 'search' => $filters['search'] ?? '', 'days' => $days],
+            'summary' => [
+                'gross_revenue_paise' => $gross,
+                'refunded_paise' => $refunded,
+                'net_revenue_paise' => max(0, $gross - $refunded),
+                'captured_count' => (clone $summary)->whereIn('status', ['captured', 'refund_pending', 'refunded'])->count(),
+                'failed_count' => (clone $summary)->where('status', 'failed')->count(),
+                'pending_refunds' => (clone $summary)->where('status', 'refund_pending')->count(),
+            ],
         ]);
     }
 }
