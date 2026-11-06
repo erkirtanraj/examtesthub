@@ -28,6 +28,7 @@ function status(course,value){ if(confirm('Change course status to '+value+'?'))
 <td class="p-3">{{course.access_type==='paid'?'₹ '+course.price:'Free'}}</td><td class="p-3">{{course.sections_count}}</td><td class="p-3">{{course.enrollments_count}}</td>
 <td class="p-3 capitalize">{{course.status}}</td><td class="p-3"><div class="flex flex-wrap gap-3"><button class="font-semibold text-indigo-700" @click="edit(course)">Edit</button><a class="font-semibold text-indigo-700" :href="'/admin/courses/'+course.id+'/builder'">Build content</a><a class="font-semibold text-indigo-700" :href="'/admin/courses/'+course.id+'/enrollments'">Enrollments</a><select :value="course.status" class="rounded border p-1" @change="status(course,$event.target.value)"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div></td>
 </tr><tr v-if="!courses.data.length"><td colspan="7" class="p-8 text-center text-slate-500">No courses created yet.</td></tr></tbody></table>
+</div>
 </section>
 <aside class="h-fit rounded-2xl border bg-white p-5">
 <h2 class="text-lg font-extrabold">{{editing?'Edit course':'Create course'}}</h2>
