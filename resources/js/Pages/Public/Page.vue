@@ -3,11 +3,16 @@ import { computed } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({ page: { type: Object, required: true } });
-const locale = computed(() => usePage().props.locale || 'en');
+const pageState = usePage();
+const locale = computed(() => pageState.props.locale || 'en');
 const body = computed(() => props.page.content?.[locale.value] || props.page.content?.en || '');
 </script>
 
 <template>
+    <Head :title="pageState.props.seo?.title || page.title">
+        <meta head-key="description" name="description" :content="pageState.props.seo?.description || ''" />
+        <link head-key="canonical" rel="canonical" :href="pageState.props.seo?.canonical || ''" />
+    </Head>
     <main class="min-h-screen bg-slate-50 text-slate-900">
         <header class="border-b border-slate-200 bg-white">
             <div class="mx-auto flex max-w-5xl items-center justify-between px-5 py-5">
