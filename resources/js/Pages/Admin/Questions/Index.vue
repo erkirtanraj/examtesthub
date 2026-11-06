@@ -53,8 +53,8 @@ function importCsv() { importForm.post('/admin/questions/import', { forceFormDat
     <a href="/admin/subjects" class="rounded-lg border bg-white px-4 py-2 text-sm font-semibold">{{ hi ? 'विषय और टॉपिक' : 'Manage subjects & topics' }}</a>
     <a href="/admin/questions/export" class="rounded-lg border bg-white px-4 py-2 text-sm font-semibold">{{ hi ? 'CSV निर्यात' : 'Export CSV' }}</a>
 </div>
-<div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
 <BulkSelection :items="questions.data" resource="questions" storage-key="admin-bulk-questions" label-key="prompt" />
+<div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
 <section class="space-y-4">
     <div class="grid gap-2 rounded-xl border bg-white p-4 sm:grid-cols-2 xl:grid-cols-3">
         <input v-model="search" @keyup.enter="applyFilters" placeholder="Search question text" class="rounded-lg border px-3 py-2 text-sm">
