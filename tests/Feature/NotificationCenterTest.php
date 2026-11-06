@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\PlatformEmailNotification;
 use App\Notifications\PlatformNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -116,9 +117,31 @@ class NotificationCenterTest extends TestCase
     {
         $student = $this->user('student', 'notice-email@example.test');
         $notification = new PlatformNotification('Result', 'Your result is ready.');
+        $emailNotification = new PlatformEmailNotification('Result', 'Your result is ready.');
         $this->assertSame(['database'], $notification->via($student));
+        $this->assertSame([], $emailNotification->via($student));
 
         $student->forceFill(['notification_preferences' => ['email' => true]])->save();
-        $this->assertSame(['database', 'mail'], $notification->via($student->fresh()));
+        $this->assertSame(['database'], $notification->via($student->fresh()));
+        $this->assertSame(['mail'], $emailNotification->via($student->fresh()));
     }
+    public function test_admin_can_force_queue_email_without_changing_student_preferences(): void
+    {
+        Notification::fake();
+        $admin = $this->user('admin', 'notice-email-admin@example.test', ['settings.manage']);
+        $student = $this->user('student', 'notice-email-target@example.test');
+
+        $this->actingAs($admin)->post('/admin/announcements', [
+            'title' => 'Important update',
+            'message' => 'Please read this update.',
+            'audience' => 'selected',
+            'student_ids' => [$student->id],
+            'send_email' => true,
+        ])->assertRedirect();
+
+        Notification::assertSentTo($student, PlatformNotification::class);
+        Notification::assertSentTo($student, PlatformEmailNotification::class);
+        $this->assertSame([], $student->fresh()->notification_preferences ?? []);
+    }
+
 }
