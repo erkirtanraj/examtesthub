@@ -49,6 +49,15 @@ class AdminBulkContentController extends Controller
         $this->assertDeletable($resource, $ids);
 
         $filePaths = [];
+        if ($resource === 'courses') {
+            $filePaths = DB::table('course_lesson_resources')
+                ->join('course_lessons', 'course_lessons.id', '=', 'course_lesson_resources.lesson_id')
+                ->join('course_chapters', 'course_chapters.id', '=', 'course_lessons.chapter_id')
+                ->join('course_sections', 'course_sections.id', '=', 'course_chapters.section_id')
+                ->whereIn('course_sections.course_id', $ids)
+                ->whereNotNull('course_lesson_resources.file_path')
+                ->pluck('course_lesson_resources.file_path')->all();
+        }
         DB::transaction(function () use ($request, $resource, $records, &$filePaths): void {
             foreach ($records as $record) {
                 if ($record instanceof StudyMaterial) $filePaths[] = $record->file_path;
@@ -95,6 +104,7 @@ class AdminBulkContentController extends Controller
             'subjects' => Question::whereIn('subject_id', $ids)->exists() || StudyMaterial::whereIn('subject_id', $ids)->exists(),
             'topics' => Question::whereIn('topic_id', $ids)->exists(),
             'test-series' => TestSeriesEnrollment::whereIn('test_series_id', $ids)->exists(),
+            'website-content' => WebsiteContent::whereIn('id', $ids)->whereIn('key', ['section.hero', 'section.features', 'section.steps', 'section.cta'])->exists(),
             default => false,
         };
         abort_if($blocked, 422, match ($resource) {
@@ -104,6 +114,7 @@ class AdminBulkContentController extends Controller
             'subjects' => 'Selected subjects still contain questions or study materials. Move or delete those records first.',
             'topics' => 'Selected topics are assigned to questions. Move or remove those questions before deleting the topics.',
             'test-series' => 'Selected test series have enrollments. Archive them instead of deleting.',
+            'website-content' => 'Default homepage sections cannot be deleted because the site recreates them. Hide them or edit their content instead.',
             default => 'One or more selected records cannot be deleted.',
         });
     }
