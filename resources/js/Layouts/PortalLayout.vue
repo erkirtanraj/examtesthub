@@ -73,6 +73,7 @@ const adminGroups = computed(() => [
         items: [
             { label: isHindi.value ? 'प्रदर्शन डैशबोर्ड' : 'Performance dashboard', href: '/admin/reports', permission: 'reports.view' },
             { label: isHindi.value ? 'LMS कोर्स एनालिटिक्स' : 'LMS Course Analytics', href: '/admin/course-analytics', permission: 'reports.view' },
+            { label: isHindi.value ? 'परीक्षा एनालिटिक्स' : 'Exam Analytics', href: '/admin/exam-analytics', permission: 'reports.view' },
         ],
     },
     {
