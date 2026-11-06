@@ -285,7 +285,8 @@ class PaymentGatewayTest extends TestCase
         $series = $this->paidSeries($admin);
         $captured = $this->paymentFor($student, $series, 'captured');
         $captured->update(['provider_payment_id' => 'pay_revenue_1', 'verified_at' => now()]);
-        $refunded = $this->paymentFor($studentTwo, $series, 'refunded', 'order_revenue_2');
+        $refundedSeries = $this->paidSeries($admin);
+        $refunded = $this->paymentFor($studentTwo, $refundedSeries, 'refunded', 'order_revenue_2');
         $refunded->update(['provider_payment_id' => 'pay_revenue_2', 'verified_at' => now(), 'refunded_at' => now()]);
 
         $response = $this->actingAs($admin)->get('/admin/payments')->assertOk();
