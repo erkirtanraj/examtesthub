@@ -136,4 +136,52 @@ class WebsiteContentTest extends TestCase
             ->assertSee('/pages/privacy-policy', false)
             ->assertDontSee('/pages/draft-page', false);
     }
+
+    public function test_unpublished_pages_are_hidden_from_public_page_route_and_api(): void
+    {
+        WebsiteContent::create([
+            'type' => 'page',
+            'key' => 'draft',
+            'title' => 'Draft Page',
+            'slug' => 'draft-page',
+            'content' => ['en' => 'Private draft content'],
+            'is_published' => false,
+            'sort_order' => 0,
+        ]);
+
+        $this->get('/pages/draft-page')->assertNotFound();
+        $this->getJson('/api/v1/pages/draft-page')->assertNotFound();
+    }
+
+    public function test_public_website_content_api_returns_published_content_only(): void
+    {
+        WebsiteContent::create([
+            'type' => 'home',
+            'key' => 'published-copy',
+            'title' => 'Published copy',
+            'content' => ['en' => 'Visible text'],
+            'is_published' => true,
+            'sort_order' => 0,
+        ]);
+        WebsiteContent::create([
+            'type' => 'home',
+            'key' => 'draft-copy',
+            'title' => 'Draft copy',
+            'content' => ['en' => 'Hidden text'],
+            'is_published' => false,
+            'sort_order' => 1,
+        ]);
+
+        $this->getJson('/api/v1/website-content')
+            ->assertOk()
+            ->assertJsonFragment(['key' => 'published-copy'])
+            ->assertJsonMissing(['key' => 'draft-copy'])
+            ->assertJsonMissing(['en' => 'Hidden text']);
+    }
+
+    public function test_guest_cannot_open_website_content_manager(): void
+    {
+        $this->get('/admin/settings/website-content')->assertRedirect();
+    }
+
 }
