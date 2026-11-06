@@ -309,6 +309,7 @@ class PaymentController extends Controller
                 'failure_description' => null,
                 'verified_at' => now(),
             ]);
+            app(\App\Services\CouponPricingService::class)->redeemForPayment($locked);
             $enrollment->update([
                 'status' => 'active',
                 'amount_paid' => number_format($locked->amount_paise / 100, 2, '.', ''),
@@ -373,6 +374,7 @@ class PaymentController extends Controller
                         'failure_description' => null,
                         'verified_at' => now(),
                     ]);
+                    app(\App\Services\CouponPricingService::class)->redeemForPayment($payment);
                     $enrollment->update([
                         'status' => 'active',
                         'amount_paid' => number_format($payment->amount_paise / 100, 2, '.', ''),
@@ -387,6 +389,7 @@ class PaymentController extends Controller
                     'failure_code' => $entity['error_code'] ?? null,
                     'failure_description' => Str::limit((string) ($entity['error_description'] ?? 'Payment failed.'), 500, ''),
                 ]);
+                app(\App\Services\CouponPricingService::class)->releaseForPayment($payment);
             } elseif ($eventType === 'refund.processed' && $payment && $payment->status === 'refund_pending'
                 && (int) ($refundEntity['amount'] ?? 0) === $payment->amount_paise) {
                 $payment->update(['status' => 'refunded', 'refunded_at' => now()]);
