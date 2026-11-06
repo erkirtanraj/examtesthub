@@ -5,7 +5,7 @@ import PortalLayout from '../../../Layouts/PortalLayout.vue';
 
 const props = defineProps({ certificate: Object, student: Object, course: Object });
 const page = usePage();
-const hi = computed(() => page.props.locale === 'hi');
+const hi = computed(() => page.props.locale === 'hi');\nfunction printCertificate() { window.print(); }
 </script>
 
 <template>
@@ -13,7 +13,7 @@ const hi = computed(() => page.props.locale === 'hi');
 <div class="mx-auto max-w-4xl space-y-4">
   <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
     <a href="/student/my-courses" class="text-sm font-bold text-indigo-700">← My courses</a>
-    <button type="button" @click="window.print()" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Print / Save as PDF</button>
+    <button type="button" @click="printCertificate" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Print / Save as PDF</button>
   </div>
   <article class="border-8 border-double border-amber-500 bg-white p-8 text-center shadow-sm sm:p-14">
     <p class="text-sm font-bold uppercase tracking-[0.3em] text-amber-700">ExamTestHub</p>
@@ -26,7 +26,7 @@ const hi = computed(() => page.props.locale === 'hi');
       <div><p class="text-slate-500">Issue date</p><p class="font-semibold">{{ certificate.issued_at }}</p></div>
       <div><p class="text-slate-500">Certificate ID</p><p class="font-semibold">{{ certificate.number }}</p></div>
     </div>
-    <p class="mt-8 text-xs text-slate-500">Verify this certificate at {{ page.url ? new URL(page.url).origin : '' }}/certificates/verify/{{ certificate.number }}</p>
+    <p class="mt-8 text-xs text-slate-500">Verify this certificate at /certificates/verify/{{ certificate.number }}</p>
   </article>
 </div>
 </PortalLayout>
