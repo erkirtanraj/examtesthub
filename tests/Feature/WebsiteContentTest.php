@@ -95,4 +95,45 @@ class WebsiteContentTest extends TestCase
         ]);
         $this->get('/pages/terms-of-service')->assertOk();
     }
+
+    public function test_sitemap_contains_public_catalogues_and_only_published_cms_pages(): void
+    {
+        WebsiteContent::create([
+            'type' => 'page',
+            'key' => 'about',
+            'title' => 'About Us',
+            'slug' => 'about-us',
+            'content' => ['en' => 'About ExamTestHub'],
+            'is_published' => true,
+            'sort_order' => 0,
+        ]);
+        WebsiteContent::create([
+            'type' => 'legal',
+            'key' => 'privacy',
+            'title' => 'Privacy Policy',
+            'slug' => 'privacy-policy',
+            'content' => ['en' => 'Privacy details'],
+            'is_published' => true,
+            'sort_order' => 1,
+        ]);
+        WebsiteContent::create([
+            'type' => 'page',
+            'key' => 'draft',
+            'title' => 'Draft Page',
+            'slug' => 'draft-page',
+            'content' => ['en' => 'Not public'],
+            'is_published' => false,
+            'sort_order' => 2,
+        ]);
+
+        $response = $this->get('/sitemap.xml')->assertOk()
+            ->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
+
+        $response->assertSee('/courses', false)
+            ->assertSee('/study-materials', false)
+            ->assertSee('/test-series', false)
+            ->assertSee('/pages/about-us', false)
+            ->assertSee('/pages/privacy-policy', false)
+            ->assertDontSee('/pages/draft-page', false);
+    }
 }
