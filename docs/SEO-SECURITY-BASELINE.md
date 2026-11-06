@@ -1,16 +1,16 @@
 # SEO and security baseline
 
-This baseline is intentionally limited to the repository's public entry point. It does not replace production-host configuration or a runtime security assessment.
+This PR provides crawler directives and deployment guidance. The public sitemap and page-level SEO metadata are implemented with the public homepage/CMS routes in PR #14; keep those runtime features together with their route and content model.
 
 ## Public crawl paths
 
 - `public/robots.txt` allows public URLs and disallows application-only admin, student and API paths from compliant crawlers.
-- `public/sitemap.xml` includes only the public homepage. Add other URLs only when they are public, canonical and intended for indexing.
+- The public application serves `/sitemap.xml` dynamically, listing the homepage, public catalogue landing pages and published CMS page/legal URLs. Do not add a static `public/sitemap.xml`, because it would shadow the Laravel route and become stale as CMS content changes.
 - Never rely on robots.txt as access control. Private routes must remain protected by Laravel authentication and authorization.
 
-## Public homepage metadata
+## Page metadata
 
-The Inertia root view supplies default title, description, canonical and social metadata. The Welcome page can override title and description via Inertia's `Head` component.
+The public homepage, catalogue and published CMS pages render page-specific title, description and canonical metadata through Inertia's `Head` component in PR #14. The root Inertia view may provide defaults, but route-level metadata is the source for these public pages.
 
 ## Security headers
 
