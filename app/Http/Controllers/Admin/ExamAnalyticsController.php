@@ -25,8 +25,8 @@ class ExamAnalyticsController extends Controller
         $to = now()->endOfDay();
 
         $attempts = ExamAttempt::query()
-            ->where('status', 'submitted')
-            ->whereBetween('submitted_at', [$from, $to])
+            ->where('exam_attempts.status', 'submitted')
+            ->whereBetween('exam_attempts.submitted_at', [$from, $to])
             ->when($examId, fn ($query) => $query->where('exam_id', $examId));
 
         $summaryRow = (clone $attempts)
