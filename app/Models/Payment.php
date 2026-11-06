@@ -9,13 +9,13 @@ class Payment extends Model
 {
     protected $fillable = [
         'test_series_enrollment_id', 'course_enrollment_id', 'user_id', 'provider', 'provider_order_id',
-        'provider_payment_id', 'receipt', 'amount_paise', 'currency', 'status',
-        'failure_code', 'failure_description', 'verified_at',
+        'provider_payment_id', 'provider_refund_id', 'receipt', 'amount_paise', 'currency', 'status',
+        'failure_code', 'failure_description', 'refund_reason', 'verified_at', 'refunded_at',
     ];
 
     protected function casts(): array
     {
-        return ['amount_paise' => 'integer', 'verified_at' => 'datetime'];
+        return ['amount_paise' => 'integer', 'verified_at' => 'datetime', 'refunded_at' => 'datetime'];
     }
 
     public function enrollment(): BelongsTo
