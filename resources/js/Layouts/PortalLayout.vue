@@ -42,6 +42,7 @@ const adminGroups = computed(() => [
         key: 'Users', label: isHindi.value ? 'उपयोगकर्ता प्रबंधन' : 'User Management', icon: 'users',
         items: [
             { label: isHindi.value ? 'सभी उपयोगकर्ता' : 'All Users', href: '/admin/users', permission: 'users.view' },
+            { label: isHindi.value ? 'विद्यार्थी प्रबंधन' : 'Student Management', href: '/admin/students', permission: 'users.view' },
             { label: isHindi.value ? 'भूमिकाएँ' : 'Roles', href: '/admin/roles', permission: 'roles.manage' },
             { label: isHindi.value ? 'अनुमतियाँ' : 'Permissions', href: '/admin/permissions', permission: 'permissions.manage' },
         ],
