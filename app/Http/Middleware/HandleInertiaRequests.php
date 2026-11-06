@@ -18,6 +18,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'appName' => config('app.name'),
             'locale' => app()->getLocale(),
+            'unreadNotificationsCount' => $user ? $user->unreadNotifications()->count() : 0,
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
             ],

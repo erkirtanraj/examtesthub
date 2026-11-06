@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import {
-    Activity, BookOpen, Brain, ChevronDown, ClipboardList, CreditCard,
+    Activity, BookOpen, Brain, ChevronDown, ClipboardList, CreditCard, Bell,
     GraduationCap, LayoutDashboard, Library, Menu, ShieldCheck, Users,
     X, UserRound, Settings, FileText, BarChart3, Layers, Mail, LogOut, ChevronRight,
 } from 'lucide-vue-next';
@@ -30,7 +30,7 @@ const iconMap = {
     dashboard: LayoutDashboard, users: Users, academic: Library, questions: Brain,
     exams: ClipboardList, series: Layers, payments: CreditCard, activity: Activity,
     profile: UserRound, courses: BookOpen, materials: FileText, reports: BarChart3,
-    security: ShieldCheck, settings: Settings, learning: GraduationCap,
+    security: ShieldCheck, settings: Settings, learning: GraduationCap, notifications: Bell,
 };
 
 const adminGroups = computed(() => [
@@ -82,6 +82,7 @@ const adminGroups = computed(() => [
         items: [
             { label: isHindi.value ? 'गतिविधि लॉग' : 'Audit Activity', href: '/admin/activity', permission: 'audit.view' },
             { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/admin/profile', permission: 'profile.manage' },
+            { label: isHindi.value ? 'घोषणाएँ' : 'Announcements', href: '/admin/announcements', permission: 'settings.manage' },
         ],
     },
     {
@@ -95,6 +96,7 @@ const adminGroups = computed(() => [
 
 const studentItems = computed(() => [
     { label: isHindi.value ? 'डैशबोर्ड' : 'Dashboard', href: '/student/dashboard', icon: 'dashboard' },
+    { label: isHindi.value ? 'सूचनाएँ' : 'Notifications', href: '/student/notifications', icon: 'notifications' },
     { label: isHindi.value ? 'मेरी प्रोफ़ाइल' : 'My Profile', href: '/student/profile', icon: 'profile', permission: 'profile.manage' },
     { label: isHindi.value ? 'कोर्स कैटलॉग' : 'Course Catalogue', href: '/student/courses', icon: 'courses' },
     { label: isHindi.value ? 'मेरे कोर्स' : 'My Courses', href: '/student/my-courses', icon: 'learning' },
@@ -153,6 +155,7 @@ watch(() => page.url, () => { closeMobile(); closeProfileMenu(); });
                         <button type="button" @click="switchLanguage('en')" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition sm:px-3" :class="!isHindi ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'">EN</button>
                         <button type="button" @click="switchLanguage('hi')" class="rounded-lg px-2.5 py-1.5 text-xs font-bold transition sm:px-3" :class="isHindi ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'">हिंदी</button>
                     </div>
+                    <a :href="isAdmin ? '/admin/announcements' : '/student/notifications'" class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 sm:h-11 sm:w-11" aria-label="Notifications" title="Notifications"><Bell :size="19" /><span v-if="!isAdmin && page.props.unreadNotificationsCount" class="absolute -right-1 -top-1 min-w-5 rounded-full bg-rose-600 px-1 text-center text-[10px] font-bold leading-5 text-white">{{ page.props.unreadNotificationsCount > 99 ? '99+' : page.props.unreadNotificationsCount }}</span></a>
                     <a v-if="hasPermission('profile.manage')" :href="profileHref" class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 sm:h-11 sm:w-11" :aria-label="profileLabel" :title="profileLabel"><UserRound :size="19" /></a>
                     <div v-if="user" class="relative">
                         <button type="button" class="flex max-w-[min(48vw,240px)] items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-2 shadow-sm transition hover:border-indigo-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 sm:gap-2.5 sm:pl-2 sm:pr-3" @click="profileMenuOpen = !profileMenuOpen" :aria-expanded="profileMenuOpen" aria-haspopup="menu">

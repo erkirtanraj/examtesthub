@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\CourseLesson;
 use App\Models\CourseLessonProgress;
+use App\Services\NotificationDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -126,10 +127,17 @@ class CourseController extends Controller
     {
         abort_unless($course->isAvailable(), 404);
         abort_if($course->access_type === 'paid', 409, 'Paid courses must use secure checkout.');
-        CourseEnrollment::firstOrCreate(
+        $enrollment = CourseEnrollment::firstOrCreate(
             ['course_id' => $course->id, 'user_id' => $request->user()->id],
             ['status' => 'active', 'amount_paid' => 0, 'currency' => $course->currency, 'enrolled_at' => now()]
         );
+        if ($enrollment->wasRecentlyCreated) {
+            $user = $request->user();
+            $preferences = $user->notification_preferences ?? [];
+            if ($preferences['course_updates'] ?? true) {
+                NotificationDispatcher::send($user, 'Course enrollment confirmed', 'You are now enrolled in '.$course->title.'. Start learning from your course dashboard.', '/student/courses/'.$course->slug, 'course_update');
+            }
+        }
         return back()->with('success', 'You are enrolled in this course.');
     }
 

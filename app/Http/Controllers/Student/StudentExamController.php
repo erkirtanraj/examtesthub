@@ -4,6 +4,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Exam;
 use App\Models\ExamAttempt;
 use App\Models\Question;
+use App\Models\User;
+use App\Services\NotificationDispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -121,8 +123,8 @@ class StudentExamController extends Controller {
   if($a->expires_at->isPast()){ $this->grade($a); abort(422,'Time expired; attempt submitted.'); }
  }
  private function grade(ExamAttempt $attempt): void {
-  DB::transaction(function()use($attempt){
-   $a=ExamAttempt::whereKey($attempt->id)->lockForUpdate()->firstOrFail(); if($a->status!=='in_progress')return;
+  $submitted = DB::transaction(function()use($attempt){
+   $a=ExamAttempt::whereKey($attempt->id)->lockForUpdate()->firstOrFail(); if($a->status!=='in_progress')return false;
    $a->load(['answers.question']); $correct=0;$wrong=0;$blank=0;$score=0;
    foreach($a->answers as $row){
     $given=collect($row->answer??[])->filter(fn($v)=>$v!==null&&$v!=='')->map(fn($v)=>trim((string)$v))->sort()->values()->all();
@@ -134,6 +136,14 @@ class StudentExamController extends Controller {
     $row->update(['is_correct'=>$has?$ok:null,'marks_awarded'=>$awarded]);
    }
    $a->update(['status'=>'submitted','submitted_at'=>now(),'score'=>$score,'correct_count'=>$correct,'incorrect_count'=>$wrong,'unanswered_count'=>$blank]);
+   return true;
   });
+  if ($submitted) {
+   $user = User::find($attempt->user_id);
+   $preferences = $user?->notification_preferences ?? [];
+   if ($user && ($preferences['exam_results'] ?? true)) {
+    NotificationDispatcher::send($user, 'Exam result available', 'Your exam has been submitted and your result is ready to view.', '/student/attempts/'.$attempt->id.'/result', 'exam_result');
+   }
+  }
  }
 }
