@@ -76,11 +76,16 @@ class StudentExamController extends Controller {
    abort(422,'Unsupported question type.');
   }
 
-  DB::transaction(function()use($request,$attempt,$question,$data,$answer){
+  $saved=DB::transaction(function()use($request,$attempt,$question,$data,$answer){
    $locked=ExamAttempt::whereKey($attempt->id)->lockForUpdate()->firstOrFail();
    $this->owner($request,$locked);
    abort_unless(collect($locked->question_order??[])->contains(fn($id)=>(int)$id===$question->id),404);
-   $this->active($locked);
+   abort_if($locked->status!=='in_progress',422,'Attempt already submitted.');
+
+   // Return from the transaction before grading: aborting inside this transaction
+   // would roll back the expiry submission as well.
+   if($locked->expires_at->isPast()) return false;
+
    $locked->answers()->updateOrCreate(
     ['question_id'=>$question->id],
     [
@@ -89,7 +94,14 @@ class StudentExamController extends Controller {
      'answered_at'=>count($answer)>0?now():null,
     ]
    );
+
+   return true;
   });
+
+  if(!$saved){
+   $this->grade($attempt);
+   abort(422,'Time expired; attempt submitted.');
+  }
 
   return back(303);
  }
