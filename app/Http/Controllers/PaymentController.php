@@ -332,14 +332,19 @@ class PaymentController extends Controller
         abort_unless($eventId !== '' && strlen($eventId) <= 120, 400, 'Missing webhook event ID.');
         $eventType = (string) ($payload['event'] ?? '');
         $entity = $payload['payload']['payment']['entity'] ?? [];
+        $refundEntity = $payload['payload']['refund']['entity'] ?? [];
         $orderId = $entity['order_id'] ?? null;
         $paymentId = $entity['id'] ?? null;
+        $refundId = $refundEntity['id'] ?? null;
 
-        $inserted = DB::transaction(function () use ($eventId, $eventType, $request, $entity, $orderId, $paymentId) {
+        $inserted = DB::transaction(function () use ($eventId, $eventType, $request, $entity, $refundEntity, $orderId, $paymentId, $refundId) {
             $payment = null;
             if (in_array($eventType, ['payment.captured', 'payment.failed'], true)) {
                 $payment = Payment::where('provider_order_id', $orderId)->lockForUpdate()->first();
                 abort_unless($payment, 404, 'Payment order not found.');
+            } elseif ($eventType === 'refund.processed') {
+                $payment = Payment::where('provider_refund_id', $refundId)->lockForUpdate()->first();
+                abort_unless($payment, 404, 'Refund record not found.');
             }
 
             $created = DB::table('payment_webhook_events')->insertOrIgnore([
@@ -382,6 +387,13 @@ class PaymentController extends Controller
                     'failure_code' => $entity['error_code'] ?? null,
                     'failure_description' => Str::limit((string) ($entity['error_description'] ?? 'Payment failed.'), 500, ''),
                 ]);
+            } elseif ($eventType === 'refund.processed' && $payment && $payment->status === 'refund_pending'
+                && (int) ($refundEntity['amount'] ?? 0) === $payment->amount_paise) {
+                $payment->update(['status' => 'refunded', 'refunded_at' => now()]);
+                $enrollment = $payment->course_enrollment_id
+                    ? \\App\\Models\\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->first()
+                    : TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->first();
+                $enrollment?->update(['status' => 'refunded']);
             }
 
             return true;
