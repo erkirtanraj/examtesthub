@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\CourseEnrollment;
+use App\Models\CourseLesson;
 use App\Models\ExamAttempt;
 use App\Models\TestSeriesEnrollment;
 use Illuminate\Http\Request;
@@ -49,6 +50,35 @@ class PerformanceController extends Controller
         $seriesEnrollments = TestSeriesEnrollment::where('user_id', $userId)
             ->whereIn('status', ['active', 'completed'])->count();
 
+        $courseProgress = CourseEnrollment::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['active', 'completed'])
+            ->with('course:id,title,slug')
+            ->latest('enrolled_at')
+            ->limit(12)
+            ->get()
+            ->map(function (CourseEnrollment $enrollment) {
+                $total = CourseLesson::query()
+                    ->where('status', 'published')
+                    ->whereHas('chapter.section', fn ($query) => $query->where('course_id', $enrollment->course_id))
+                    ->count();
+                $completed = $enrollment->progress()
+                    ->where('status', 'completed')
+                    ->whereHas('lesson', fn ($query) => $query->where('status', 'published'))
+                    ->count();
+
+                return [
+                    'id' => $enrollment->id,
+                    'course' => $enrollment->course?->title ?? 'Deleted course',
+                    'slug' => $enrollment->course?->slug,
+                    'status' => $enrollment->status,
+                    'total_lessons' => $total,
+                    'completed_lessons' => $completed,
+                    'progress_percentage' => $total > 0 ? round($completed * 100 / $total, 1) : 0,
+                    'enrolled_at' => $enrollment->enrolled_at?->toIso8601String(),
+                ];
+            });
+
         return Inertia::render('Student/Performance/Index', [
             'summary' => [
                 'attempts' => (int) ($summary->attempts_count ?? 0),
@@ -58,6 +88,7 @@ class PerformanceController extends Controller
                 'series_enrollments' => $seriesEnrollments,
             ],
             'recent_attempts' => $recentAttempts,
+            'course_progress' => $courseProgress,
         ]);
     }
 }
