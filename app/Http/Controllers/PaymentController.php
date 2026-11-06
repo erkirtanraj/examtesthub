@@ -391,7 +391,7 @@ class PaymentController extends Controller
                 && (int) ($refundEntity['amount'] ?? 0) === $payment->amount_paise) {
                 $payment->update(['status' => 'refunded', 'refunded_at' => now()]);
                 $enrollment = $payment->course_enrollment_id
-                    ? \\App\\Models\\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->first()
+                    ? \App\Models\CourseEnrollment::whereKey($payment->course_enrollment_id)->lockForUpdate()->first()
                     : TestSeriesEnrollment::whereKey($payment->test_series_enrollment_id)->lockForUpdate()->first();
                 $enrollment?->update(['status' => 'refunded']);
             }
@@ -455,7 +455,7 @@ class PaymentController extends Controller
             if ($response->json('status') === 'processed') {
                 $this->finalizeRefund($locked);
             }
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $locked->update(['status' => 'captured', 'refund_reason' => null]);
             Log::error('Razorpay refund request failed', ['payment_id' => $locked->id, 'exception' => $exception::class]);
             return back()->withErrors(['refund' => 'The refund service is temporarily unavailable.']);
@@ -476,7 +476,7 @@ class PaymentController extends Controller
             }
             $locked->update(['status' => 'refunded', 'refunded_at' => now()]);
             $enrollment = $locked->course_enrollment_id
-                ? \\App\\Models\\CourseEnrollment::whereKey($locked->course_enrollment_id)->lockForUpdate()->first()
+                ? \App\Models\CourseEnrollment::whereKey($locked->course_enrollment_id)->lockForUpdate()->first()
                 : TestSeriesEnrollment::whereKey($locked->test_series_enrollment_id)->lockForUpdate()->first();
             $enrollment?->update(['status' => 'refunded']);
         });
