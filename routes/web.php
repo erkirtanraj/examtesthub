@@ -75,7 +75,7 @@ Route::middleware(['auth','active','role:super-admin|admin|content-manager|exam-
  Route::get('/',fn()=>redirect()->route('admin.dashboard'));
  Route::get('/dashboard',fn()=>Inertia::render('Admin/Dashboard'))->name('dashboard');
  Route::post('/bulk-delete/{resource}', [AdminBulkContentController::class, 'destroy'])->whereIn('resource', ['courses', 'exams', 'questions', 'subjects', 'topics', 'materials', 'test-series', 'website-content'])->name('bulk-delete');
- Route::get('/announcements',[AnnouncementController::class,'index'])->middleware('permission:settings.manage')->name('announcements.index');
+ Route::get('/coupons',[CouponController::class,'index'])->middleware('permission:settings.manage')->name('coupons.index');\n Route::post('/coupons',[CouponController::class,'store'])->middleware('permission:settings.manage')->name('coupons.store');\n Route::put('/coupons/{coupon}',[CouponController::class,'update'])->middleware('permission:settings.manage')->name('coupons.update');\n Route::delete('/coupons/{coupon}',[CouponController::class,'destroy'])->middleware('permission:settings.manage')->name('coupons.destroy');\n Route::get('/announcements',[AnnouncementController::class,'index'])->middleware('permission:settings.manage')->name('announcements.index');
  Route::post('/announcements',[AnnouncementController::class,'store'])->middleware(['permission:settings.manage','throttle:10,1'])->name('announcements.store');
  Route::get('/reports',[ReportsController::class,'index'])->middleware('permission:reports.view')->name('reports.index');
  Route::get('/course-analytics',[CourseAnalyticsController::class,'index'])->middleware('permission:reports.view')->name('course-analytics.index');
