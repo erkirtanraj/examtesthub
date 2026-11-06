@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Notifications\PlatformNotification;
+use App\Services\NotificationDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,11 +47,14 @@ class AnnouncementController extends Controller
                 if (($preferences['announcements'] ?? true) === false) {
                     continue;
                 }
-                if (!empty($data['send_email'])) {
-                    $preferences['email'] = true;
-                    $student->setAttribute('notification_preferences', $preferences);
-                }
-                $student->notify(new PlatformNotification($data['title'], $data['message'], $url, 'announcement'));
+                NotificationDispatcher::send(
+                    $student,
+                    $data['title'],
+                    $data['message'],
+                    $url,
+                    'announcement',
+                    !empty($data['send_email']),
+                );
                 $sent++;
             }
         });
