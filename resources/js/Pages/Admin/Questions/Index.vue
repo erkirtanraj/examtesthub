@@ -54,7 +54,6 @@ function importCsv() { importForm.post('/admin/questions/import', { forceFormDat
     <a href="/admin/subjects" class="rounded-lg border bg-white px-4 py-2 text-sm font-semibold">{{ hi ? 'विषय और टॉपिक' : 'Manage subjects & topics' }}</a>
     <a href="/admin/questions/export" class="rounded-lg border bg-white px-4 py-2 text-sm font-semibold">{{ hi ? 'CSV निर्यात' : 'Export CSV' }}</a>
 </div>
-<BulkSelection ref="bulkSelection" :items="questions.data" resource="questions" storage-key="admin-bulk-questions" />
 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
 <section class="space-y-4">
     <div class="grid gap-2 rounded-xl border bg-white p-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -65,6 +64,7 @@ function importCsv() { importForm.post('/admin/questions/import', { forceFormDat
         <select v-model="languageFilter" class="rounded-lg border px-3 py-2 text-sm"><option value="">All languages</option><option value="en">English</option><option value="hi">Hindi</option></select>
         <button @click="applyFilters" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white">Apply filters</button>
     </div>
+    <BulkSelection ref="bulkSelection" :items="questions.data" resource="questions" storage-key="admin-bulk-questions" />
     <div class="overflow-x-auto rounded-xl border bg-white">
         <table class="w-full text-left text-sm">
             <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="w-10 p-3"><span class="sr-only">Select</span></th><th class="p-3">Question</th><th class="p-3">Subject / Topic</th><th class="p-3">Level</th><th class="p-3">Status</th><th class="p-3">Action</th></tr></thead>
