@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { BookOpen, ClipboardCheck, FileText, Search, GraduationCap, LogOut, LayoutDashboard } from 'lucide-vue-next';
 
 const props = defineProps({ type: String, items: Object, search: String });
