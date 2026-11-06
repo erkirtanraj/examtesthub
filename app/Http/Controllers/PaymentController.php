@@ -79,6 +79,7 @@ class PaymentController extends Controller
 
             if ($pendingPayment) {
                 if (filled($pendingPayment->provider_order_id)) {
+                    abort_if($couponCode !== '' && strtoupper($couponCode) !== strtoupper((string) $pendingPayment->coupon_code), 409, 'A payment order already exists with a different coupon. Complete it or wait for it to expire before changing the coupon.');
                     return $pendingPayment;
                 }
 
@@ -91,6 +92,7 @@ class PaymentController extends Controller
                     'status' => 'failed',
                     'failure_description' => 'Payment order creation timed out; a new attempt is required.',
                 ]);
+                app('App\\Services\\CouponPricingService')->releaseForPayment($pendingPayment);
             }
 
             $receipt = 'eth_'.$enrollment->id.'_'.Str::lower(Str::random(12));
@@ -137,6 +139,7 @@ class PaymentController extends Controller
 
             if (! $response->successful() || ! filled($response->json('id'))) {
                 $payment->update(['status' => 'failed', 'failure_description' => 'Order creation failed at payment provider.']);
+                app('App\\Services\\CouponPricingService')->releaseForPayment($payment);
                 Log::warning('Razorpay order creation failed', ['payment_id' => $payment->id, 'status' => $response->status()]);
                 return back()->withErrors(['payment' => 'Unable to start payment. Please try again later.']);
             }
@@ -144,6 +147,7 @@ class PaymentController extends Controller
             $payment->update(['provider_order_id' => $response->json('id')]);
         } catch (\Throwable $exception) {
             $payment->update(['status' => 'failed', 'failure_description' => 'Payment provider unavailable.']);
+            app('App\\Services\\CouponPricingService')->releaseForPayment($payment);
             Log::error('Razorpay order request failed', ['payment_id' => $payment->id, 'exception' => $exception::class]);
             return back()->withErrors(['payment' => 'Payment service is temporarily unavailable.']);
         }
@@ -203,6 +207,7 @@ class PaymentController extends Controller
 
             if ($pendingPayment) {
                 if (filled($pendingPayment->provider_order_id)) {
+                    abort_if($couponCode !== '' && strtoupper($couponCode) !== strtoupper((string) $pendingPayment->coupon_code), 409, 'A payment order already exists with a different coupon. Complete it or wait for it to expire before changing the coupon.');
                     return $pendingPayment;
                 }
 
@@ -215,6 +220,7 @@ class PaymentController extends Controller
                     'status' => 'failed',
                     'failure_description' => 'Payment order creation timed out; a new attempt is required.',
                 ]);
+                app('App\\Services\\CouponPricingService')->releaseForPayment($pendingPayment);
             }
 
             $receipt = 'course_'.$enrollment->id.'_'.Str::lower(Str::random(12));
@@ -268,6 +274,7 @@ class PaymentController extends Controller
             $payment->update(['provider_order_id' => $response->json('id')]);
         } catch (\Throwable $exception) {
             $payment->update(['status' => 'failed', 'failure_description' => 'Payment provider unavailable.']);
+            app('App\\Services\\CouponPricingService')->releaseForPayment($payment);
             Log::error('Razorpay course order request failed', ['payment_id' => $payment->id, 'exception' => $exception::class]);
             return back()->withErrors(['payment' => 'Payment service is temporarily unavailable.']);
         }
