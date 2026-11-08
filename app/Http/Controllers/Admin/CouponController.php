@@ -38,13 +38,14 @@ class CouponController extends Controller
 
     public function destroy(Coupon $coupon): RedirectResponse
     {
-        abort_if($coupon->redemptions()->exists(), 409, 'A coupon with redemptions cannot be deleted. Deactivate it instead.');
+        abort_if($coupon->redemptions()->exists() || $coupon->reservations()->exists(), 409, 'A coupon with payment history cannot be deleted. Deactivate it instead.');
         $coupon->delete();
         return back(303)->with('success', 'Coupon deleted.');
     }
 
     private function validated(Request $request, ?Coupon $coupon = null): array
     {
+        $request->merge(['code' => strtoupper(trim((string) $request->input('code', '')))]);
         $data = $request->validate([
             'code' => ['required', 'string', 'max:40', 'regex:/^[A-Za-z0-9_-]+$/', Rule::unique('coupons', 'code')->ignore($coupon?->id)],
             'discount_type' => ['required', Rule::in(['percentage', 'fixed'])],
