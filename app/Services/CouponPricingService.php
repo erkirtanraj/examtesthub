@@ -91,16 +91,20 @@ class CouponPricingService
         if (! $reservation || $reservation->status === 'redeemed') {
             return;
         }
-        if ($reservation->status !== 'reserved') {
-            throw new \RuntimeException('Coupon reservation is not redeemable.');
+        if (! in_array($reservation->status, ['reserved', 'released'], true) || $payment->status !== 'captured') {
+            throw new \RuntimeException('Coupon reservation is not redeemable for this payment.');
         }
 
+        // A provider can confirm capture after a reservation timeout or failure callback.
+        // The verified captured payment must still be recorded for audit and accounting.
         $coupon = Coupon::query()->whereKey($reservation->coupon_id)->lockForUpdate()->firstOrFail();
-        CouponRedemption::firstOrCreate(
+        $redemption = CouponRedemption::firstOrCreate(
             ['coupon_id' => $coupon->id, 'payment_id' => $payment->id],
             ['user_id' => $reservation->user_id, 'discount_paise' => $reservation->discount_paise]
         );
-        $coupon->increment('used_count');
+        if ($redemption->wasRecentlyCreated) {
+            $coupon->increment('used_count');
+        }
         $reservation->update(['status' => 'redeemed', 'redeemed_at' => now()]);
     }
 
