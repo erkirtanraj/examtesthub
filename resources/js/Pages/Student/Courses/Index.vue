@@ -4,7 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 const props=defineProps({courses:Object,mine:{type:Boolean,default:false}});
 const page=usePage(); const hi=computed(()=>page.props.locale==='hi');
-function enroll(course){if(course.access_type==='paid'){router.post('/student/courses/'+course.slug+'/checkout');return;}router.post('/student/courses/'+course.slug+'/enroll');}
+function enroll(course){if(course.access_type==='paid'){const coupon=(window.prompt(hi.value?'कूपन कोड (वैकल्पिक):':'Coupon code (optional):')||'').trim();router.post('/student/courses/'+course.slug+'/checkout',coupon?{coupon_code:coupon}:{});return;}router.post('/student/courses/'+course.slug+'/enroll');}
 </script>
 <template>
 <PortalLayout portal="student" :title="mine?(hi?'मेरे कोर्स':'My courses'):(hi?'कोर्स कैटलॉग':'Course catalogue')" :subtitle="mine?(hi?'अपने नामांकित कोर्स और प्रगति देखें।':'Continue your enrolled courses and learning progress.'):(hi?'अपने कौशल और परीक्षा की तैयारी के लिए कोर्स चुनें।':'Explore structured courses, lessons and learning resources.')">
