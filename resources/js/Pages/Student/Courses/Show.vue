@@ -4,7 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 const props=defineProps({course:Object,enrollment:Object,progress:Object,resume_lesson_id:Number});
 const page=usePage();const hi=computed(()=>page.props.locale==='hi');
-function enroll(){if(props.course.access_type==='paid')router.post('/student/courses/'+props.course.slug+'/checkout');else router.post('/student/courses/'+props.course.slug+'/enroll');}
+function enroll(){if(props.course.access_type==='paid'){const coupon=(window.prompt(hi.value?'कूपन कोड (वैकल्पिक):':'Coupon code (optional):')||'').trim();router.post('/student/courses/'+props.course.slug+'/checkout',coupon?{coupon_code:coupon}:{});}else router.post('/student/courses/'+props.course.slug+'/enroll');}
 </script>
 <template>
 <PortalLayout portal="student" :title="hi ? (course.title_hi || course.title) : course.title" :subtitle="hi ? (course.description_hi || course.description || 'Course curriculum and lesson progress.') : (course.description || 'Course curriculum and lesson progress.')">
