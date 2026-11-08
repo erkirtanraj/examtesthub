@@ -142,6 +142,75 @@ class PaymentGatewayTest extends TestCase
         $this->assertDatabaseHas('coupons', ['code' => 'SAVE20', 'used_count' => 1]);
     }
 
+    public function test_invalid_coupon_prevents_payment_order_creation(): void
+    {
+        $admin = $this->user('super-admin', 'coupon-invalid-admin@example.test');
+        $student = $this->user('student', 'coupon-invalid-student@example.test');
+        $series = $this->paidSeries($admin);
+        Http::fake();
+
+        $this->actingAs($student)
+            ->from('/student/test-series')
+            ->post('/student/test-series/'.$series->id.'/checkout', ['coupon_code' => 'NOTREAL'])
+            ->assertSessionHasErrors('coupon_code');
+
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertDatabaseCount('coupon_reservations', 0);
+        Http::assertNothingSent();
+    }
+
+    public function test_coupon_is_redeemed_when_capture_arrives_through_webhook(): void
+    {
+        $admin = $this->user('super-admin', 'coupon-webhook-admin@example.test');
+        $student = $this->user('student', 'coupon-webhook-student@example.test');
+        $series = $this->paidSeries($admin);
+        $coupon = \\App\\Models\\Coupon::create([
+            'code' => 'HOOK20', 'discount_type' => 'percentage', 'discount_value' => 20,
+            'minimum_amount' => 0, 'usage_limit' => 5, 'per_user_limit' => 1,
+            'used_count' => 0, 'applies_to' => 'test_series', 'test_series_id' => $series->id,
+            'is_active' => true,
+        ]);
+        $enrollment = TestSeriesEnrollment::create([
+            'test_series_id' => $series->id, 'user_id' => $student->id,
+            'status' => 'pending_payment', 'currency' => 'INR',
+        ]);
+        $payment = Payment::create([
+            'test_series_enrollment_id' => $enrollment->id, 'user_id' => $student->id,
+            'provider_order_id' => 'order_coupon_webhook', 'receipt' => 'receipt_coupon_webhook',
+            'amount_paise' => 15920, 'subtotal_paise' => 19900, 'discount_paise' => 3980,
+            'coupon_id' => $coupon->id, 'coupon_code' => $coupon->code,
+            'currency' => 'INR', 'status' => 'pending',
+        ]);
+        \\App\\Models\\CouponReservation::create([
+            'coupon_id' => $coupon->id, 'payment_id' => $payment->id,
+            'user_id' => $student->id, 'discount_paise' => 3980,
+            'status' => 'reserved', 'expires_at' => now()->addMinutes(30),
+        ]);
+        $body = json_encode([
+            'event' => 'payment.captured',
+            'payload' => ['payment' => ['entity' => [
+                'id' => 'pay_coupon_webhook', 'order_id' => 'order_coupon_webhook',
+                'amount' => 15920, 'currency' => 'INR', 'status' => 'captured',
+            ]]],
+        ], JSON_THROW_ON_ERROR);
+        $server = [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_X_RAZORPAY_SIGNATURE' => hash_hmac('sha256', $body, 'webhook_secret'),
+            'HTTP_X_RAZORPAY_EVENT_ID' => 'evt_coupon_webhook',
+        ];
+
+        $this->call('POST', '/api/v1/payments/razorpay/webhook', [], [], [], $server, $body)->assertOk();
+        $this->call('POST', '/api/v1/payments/razorpay/webhook', [], [], [], $server, $body)->assertOk();
+
+        $this->assertDatabaseHas('coupon_reservations', ['payment_id' => $payment->id, 'status' => 'redeemed']);
+        $this->assertDatabaseHas('coupon_redemptions', [
+            'coupon_id' => $coupon->id, 'payment_id' => $payment->id,
+            'user_id' => $student->id, 'discount_paise' => 3980,
+        ]);
+        $this->assertDatabaseHas('coupons', ['id' => $coupon->id, 'used_count' => 1]);
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'captured']);
+    }
+
     public function test_checkout_retry_reuses_the_existing_pending_razorpay_order(): void
     {
         $admin = $this->user('super-admin', 'pay-admin-retry@example.test');
