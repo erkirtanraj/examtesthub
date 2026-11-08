@@ -116,6 +116,7 @@ class CouponPricingServiceTest extends TestCase
         $service = app(CouponPricingService::class);
 
         DB::transaction(fn () => $service->reserveForPayment('SAVE10', $payment, 19900, 'course', 12));
+        $payment->update(['status' => 'captured']);
         DB::transaction(fn () => $service->redeemForPayment($payment));
         DB::transaction(fn () => $service->redeemForPayment($payment));
 
@@ -123,6 +124,23 @@ class CouponPricingServiceTest extends TestCase
         $this->assertDatabaseHas('coupon_redemptions', ['coupon_id' => $coupon->id, 'payment_id' => $payment->id]);
         $this->assertSame(1, $coupon->fresh()->used_count);
         $this->assertDatabaseCount('coupon_redemptions', 1);
+    }
+
+    public function test_verified_capture_can_redeem_a_previously_released_reservation(): void
+    {
+        $coupon = $this->coupon();
+        $payment = $this->payment();
+        $service = app(CouponPricingService::class);
+
+        DB::transaction(fn () => $service->reserveForPayment('SAVE10', $payment, 19900, 'course', 12));
+        $service->releaseForPayment($payment);
+        $payment->update(['status' => 'captured']);
+
+        DB::transaction(fn () => $service->redeemForPayment($payment));
+
+        $this->assertDatabaseHas('coupon_reservations', ['payment_id' => $payment->id, 'status' => 'redeemed']);
+        $this->assertDatabaseHas('coupon_redemptions', ['coupon_id' => $coupon->id, 'payment_id' => $payment->id]);
+        $this->assertSame(1, $coupon->fresh()->used_count);
     }
 
     public function test_failed_payment_can_release_coupon_reservation(): void
