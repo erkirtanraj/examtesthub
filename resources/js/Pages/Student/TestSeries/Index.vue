@@ -8,8 +8,9 @@ defineProps({ series: Object });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
 function enroll(id, paid = false) {
+    const coupon = paid ? (window.prompt(hi.value ? 'कूपन कोड (वैकल्पिक):' : 'Coupon code (optional):') || '').trim() : '';
     if (confirm(paid ? (hi.value ? 'सुरक्षित भुगतान शुरू करें?' : 'Continue to secure payment?') : (hi.value ? 'इस टेस्ट सीरीज़ में शामिल हों?' : 'Enroll in this test series?'))) {
-        router.post(paid ? ('/student/test-series/' + id + '/checkout') : ('/student/test-series/' + id + '/enroll'));
+        router.post(paid ? ('/student/test-series/' + id + '/checkout') : ('/student/test-series/' + id + '/enroll'), coupon ? { coupon_code: coupon } : {});
     }
 }
 </script>
