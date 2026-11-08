@@ -164,7 +164,7 @@ class PaymentGatewayTest extends TestCase
         $admin = $this->user('super-admin', 'coupon-webhook-admin@example.test');
         $student = $this->user('student', 'coupon-webhook-student@example.test');
         $series = $this->paidSeries($admin);
-        $coupon = \\App\\Models\\Coupon::create([
+        $coupon = \App\Models\Coupon::create([
             'code' => 'HOOK20', 'discount_type' => 'percentage', 'discount_value' => 20,
             'minimum_amount' => 0, 'usage_limit' => 5, 'per_user_limit' => 1,
             'used_count' => 0, 'applies_to' => 'test_series', 'test_series_id' => $series->id,
@@ -181,7 +181,7 @@ class PaymentGatewayTest extends TestCase
             'coupon_id' => $coupon->id, 'coupon_code' => $coupon->code,
             'currency' => 'INR', 'status' => 'pending',
         ]);
-        \\App\\Models\\CouponReservation::create([
+        \App\Models\CouponReservation::create([
             'coupon_id' => $coupon->id, 'payment_id' => $payment->id,
             'user_id' => $student->id, 'discount_paise' => 3980,
             'status' => 'reserved', 'expires_at' => now()->addMinutes(30),
