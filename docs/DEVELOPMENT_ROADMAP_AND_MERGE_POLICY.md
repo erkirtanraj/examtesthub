@@ -1,6 +1,6 @@
 # ExamTestHub Development Roadmap and Merge Policy
 
-Last updated: 2026-11-06
+Last updated: 2026-11-08
 
 ## Project direction
 
@@ -44,7 +44,7 @@ Track each item as Not started, In progress, In review, Approved, or Merged. Upd
 
 | Order | Feature / phase | Reference | Status | Acceptance focus |
 |---:|---|---|---|---|
-| 1 | Coupon and discount management | Examforge + LMS_Quiz_Website | In progress (coupon schema, pricing service, admin CRUD, reservations, discounted Razorpay order amounts for course/test-series, capture redemption, failed/abandoned order release, and checkout price breakdown committed; coupon-code entry UI, broader payment lifecycle tests, test execution, frontend build, and full review remain pending) | Admin CRUD; percentage/fixed discounts; validity and usage limits; minimum spend; course/test-series scope; server-side checkout calculation; payment audit trail; atomic usage consumption; tests for invalid, expired, exhausted, scoped, and valid coupons |
+| 1 | Coupon and discount management | Examforge + LMS_Quiz_Website | In progress (coupon schema, pricing service, admin CRUD, atomic reservations, discounted Razorpay orders for courses/test series, capture redemption including delayed webhook capture, failure release, checkout breakdown, optional coupon entry on student purchase screens, and invalid-coupon/webhook/idempotency tests committed; PHP tests, frontend build, CI, and full diff review remain pending) | Admin CRUD; percentage/fixed discounts; validity and usage limits; minimum spend; course/test-series scope; server-side checkout calculation; payment audit trail; atomic usage consumption; tests for invalid, expired, exhausted, scoped, and valid coupons |
 | 2 | Student leaderboard and ranking | Examforge | Not started | Fair ranking rules, privacy controls, pagination, anti-abuse safeguards, tests |
 | 3 | Exam sections and advanced attempt controls, including pause/resume where permitted | Examforge | Not started | Server-authoritative timers and attempt state; safe resume rules; section navigation; auditability; tests |
 | 4 | Course/test-series bundles | LMS_Quiz_Website | Not started | Bundle catalogue, pricing, entitlements, purchase lifecycle, access checks |
