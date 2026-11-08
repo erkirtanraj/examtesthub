@@ -36,7 +36,7 @@ class DemoContentSeeder extends Seeder
             ->value('id')
             ?? DB::table('users')->orderBy('id')->value('id');
 
-        $catalog = $this->catalog();
+        $catalog = $this->normalizeCatalog($this->catalog());
         $counts = ['subjects' => 0, 'courses' => 0, 'series' => 0, 'exams' => 0, 'questions' => 0, 'materials' => 0];
 
         foreach ($catalog as $item) {
@@ -200,6 +200,27 @@ class DemoContentSeeder extends Seeder
 
         $this->command?->info('Demo content seeded successfully: '.json_encode($counts));
         $this->command?->warn('All records are labelled Demo. No payments or student enrollments were created.');
+    }
+
+    /**
+     * Convert legacy positional catalog rows to the named shape consumed by run().
+     * The first catalog row is already associative; the remaining rows are positional.
+     */
+    private function normalizeCatalog(array $catalog): array
+    {
+        return array_map(static function (array $item): array {
+            if (! array_is_list($item)) {
+                return $item;
+            }
+
+            return [
+                'name' => $item[0] ?? null,
+                'summary' => $item[1] ?? null,
+                'lesson' => $item[2] ?? null,
+                'points' => $item[3] ?? [],
+                'questions' => $item[4] ?? [],
+            ];
+        }, $catalog);
     }
 
     private function makePdf(string $title, array $lines): string
