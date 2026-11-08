@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import PortalLayout from '../../../Layouts/PortalLayout.vue';
 import { ArrowUpRight, BookOpenCheck, CheckCircle2, CreditCard, Sparkles } from 'lucide-vue-next';
@@ -7,9 +7,11 @@ import { ArrowUpRight, BookOpenCheck, CheckCircle2, CreditCard, Sparkles } from 
 defineProps({ series: Object });
 const page = usePage();
 const hi = computed(() => page.props.locale === 'hi');
+const couponCodes = reactive({});
 function enroll(id, paid = false) {
+    const coupon = paid ? (couponCodes[id] || '').trim() : '';
     if (confirm(paid ? (hi.value ? 'सुरक्षित भुगतान शुरू करें?' : 'Continue to secure payment?') : (hi.value ? 'इस टेस्ट सीरीज़ में शामिल हों?' : 'Enroll in this test series?'))) {
-        router.post(paid ? ('/student/test-series/' + id + '/checkout') : ('/student/test-series/' + id + '/enroll'));
+        router.post(paid ? ('/student/test-series/' + id + '/checkout') : ('/student/test-series/' + id + '/enroll'), coupon ? { coupon_code: coupon } : {});
     }
 }
 </script>
@@ -25,7 +27,7 @@ function enroll(id, paid = false) {
                 <h2 class="mt-4 break-words text-lg font-extrabold leading-snug text-slate-900">{{ s.title }}</h2>
                 <p class="mt-2 min-h-10 flex-1 text-sm leading-6 text-slate-500">{{ s.description || (hi ? 'अपनी परीक्षा की तैयारी को व्यवस्थित करें।' : 'A structured package to support your exam preparation.') }}</p>
                 <div class="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5"><span class="flex items-center gap-2 text-xs font-semibold text-slate-600"><BookOpenCheck :size="15"/>{{ s.exams_count }} {{ hi ? 'परीक्षाएँ' : 'exams included' }}</span><span v-if="s.enrollment?.status === 'active'" class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><CheckCircle2 :size="14"/>{{ hi ? 'नामांकित' : 'Enrolled' }}</span><span v-else-if="s.enrollment?.status === 'pending_payment'" class="text-xs font-bold text-amber-700">{{ hi ? 'भुगतान लंबित' : 'Payment pending' }}</span><span v-else class="inline-flex items-center gap-1 text-xs font-bold text-indigo-700"><Sparkles :size="13"/>{{ hi ? 'उपलब्ध' : 'Available' }}</span></div>
-                <div class="mt-4 border-t border-slate-100 pt-4"><button v-if="s.enrollment?.status !== 'active'" @click="enroll(s.id, s.access_type === 'paid')" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-indigo-700">{{ s.access_type === 'paid' ? (hi ? 'भुगतान करें और जुड़ें' : 'Pay & enroll') : (hi ? 'मुफ्त में जुड़ें' : 'Enroll for free') }}<component :is="s.access_type === 'paid' ? CreditCard : ArrowUpRight" :size="16"/></button><a v-else href="/student/my-test-series" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-100">{{ hi ? 'मेरी सीरीज़ खोलें' : 'Open my series' }}<ArrowUpRight :size="16"/></a></div>
+                <div class="mt-4 border-t border-slate-100 pt-4"><label v-if="s.access_type === 'paid' && s.enrollment?.status !== 'active'" class="mb-2 block text-xs font-semibold text-slate-600">{{ hi ? 'कूपन कोड (वैकल्पिक)' : 'Coupon code (optional)' }}<input v-model="couponCodes[s.id]" maxlength="40" autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal uppercase outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" :placeholder="hi ? 'कूपन कोड दर्ज करें' : 'Enter coupon code'" /></label><button v-if="s.enrollment?.status !== 'active'" @click="enroll(s.id, s.access_type === 'paid')" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-indigo-700">{{ s.access_type === 'paid' ? (hi ? 'भुगतान करें और जुड़ें' : 'Pay & enroll') : (hi ? 'मुफ्त में जुड़ें' : 'Enroll for free') }}<component :is="s.access_type === 'paid' ? CreditCard : ArrowUpRight" :size="16"/></button><a v-else href="/student/my-test-series" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 hover:bg-indigo-100">{{ hi ? 'मेरी सीरीज़ खोलें' : 'Open my series' }}<ArrowUpRight :size="16"/></a></div>
             </div>
         </article>
         <p v-if="!series.data.length" class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500 md:col-span-2 xl:col-span-3">{{ hi ? 'अभी कोई टेस्ट सीरीज़ उपलब्ध नहीं है।' : 'No test series available right now.' }}</p>
